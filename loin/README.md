@@ -1,27 +1,26 @@
 # loin
 
-ISO 7817-3 / EN 17412-3 LOIN (Level of Information Need) for Rust.
+Short-name package for ISO 7817-3 / EN 17412-3 Level of Information Need.
 
-This crate is a **pure re-export** of [`openbim-loin`](https://crates.io/crates/openbim-loin). It
-defines nothing of its own — it exists so the standard is reachable under the
-short name practitioners actually use, while there remains exactly one
-definition of every type.
+This crate is a **pure re-export** of
+[`openbim-loin`](https://crates.io/crates/openbim-loin). It defines nothing of
+its own, so both package names expose one canonical API and one type identity.
+The dependency is pinned to the exact canonical version.
 
 ```toml
 loin = "0.1"
-# identical to:
+# equivalent API to:
 openbim-loin = "0.1"
 ```
 
-Use whichever name reads better in your project. Do not depend on both.
+Use whichever package name reads better in your project. Do not depend on both.
+The current release exposes namespace contracts only; it is not a parser,
+writer, migrator, or validator.
 
-## Status
+## Documentation
 
-**Reserved.** See [`openbim-loin`](https://crates.io/crates/openbim-loin) for what is implemented.
-
-## Part of nehirde
-
-A pure-Rust IFC and openBIM toolchain: <https://github.com/GeneralPawz/nehirde>
+- [Repository README](https://github.com/openbimrs/loin#readme)
+- [API documentation](https://docs.rs/openbim-loin)
 
 ## License
 

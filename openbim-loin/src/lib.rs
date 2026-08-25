@@ -10,11 +10,11 @@
 //! EN 17412-1 defines the concepts in prose; part 3 is the exchange format.
 //! Only part 3 is implementable, and it is what this crate targets.
 //!
-//! # Depends on ISO 23387
+//! # Relationship to ISO 23387
 //!
 //! The LOIN schema imports the ISO 23387 namespace for its property
-//! vocabulary, so this crate depends on `openbim-dt`. That is a property of
-//! the standard, not a design choice.
+//! vocabulary. A future codec is expected to consume `openbim-dt` contracts,
+//! but this reserved scaffold does not yet decode that vocabulary.
 //!
 //! # 🚨 The namespace is not final
 //!

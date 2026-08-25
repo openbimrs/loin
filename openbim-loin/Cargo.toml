@@ -1,15 +1,16 @@
 [package]
 name = "openbim-loin"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-authors.workspace = true
-repository = "https://github.com/openbimrs/openbim"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.88"
+license = "MIT"
+authors = ["point-grey"]
+repository = "https://github.com/openbimrs/loin"
 readme = "README.md"
+exclude = ["AGENTS.md", "PLAN.md"]
 description = "ISO 7817-3 / EN 17412-3 LOIN (Level of Information Need)."
 keywords = ["bim", "openbim", "ifc", "aec"]
 categories = ["parser-implementations", "data-structures"]
 
 [dependencies]
-openbim-core.workspace = true
+openbim-core = "0.1.0"

@@ -1,31 +1,22 @@
-# loin implementation plan
+# loin maintenance plan
 
-Status: name reserved; implementation not started.
-Last updated: 2026-08-24
+Status: exact-version pure alias implemented and gated.
+Last updated: 2026-08-25
 
 This is task state, not ambient context. Follow `AGENTS.md`; claim one task ID,
 record blockers/decisions under it, and check it off only with evidence.
 
 ## Established boundary
 
-Exactly one line of code: pub use <canonical>::*. Defining a type here is a defect -- see scripts/check-alias-purity.sh.
-
-## Open work
-
-See `docs/ROADMAP.md` Stage 5 for sequencing. Nothing is claimed here yet.
-
-## Planned file map
-
-These paths are compiled private scaffold modules. Implement inside the named
-owner and expose a public symbol only through an intentional parent re-export.
-
-- (none claimed yet)
+Exactly one meaningful source line: `pub use openbim_loin::*;`. The semantic and
+mutation gates enforce package-version lockstep, target shape, dependency shape,
+and absence of alias-owned implementation files.
 
 ## Work queue
 
-- [ ] `ALI-LOIN` - keep this a pure re-export; nothing to implement
+- [ ] `ALI-LOIN` — keep release metadata synchronized with `openbim-loin`; add no
+  independent API or behavior.
 
 ## Completion log
 
-Nothing completed yet. Record the proof command and its result here when an
-item above is checked off.
+- Alias purity is part of the standalone CI gate.

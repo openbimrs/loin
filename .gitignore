@@ -1,0 +1,11 @@
+/target
+/references
+**/*.rs.bk
+**/__pycache__/
+*.pyc
+*.pdb
+.DS_Store
+*.swp
+.idea/
+.vscode/
+.hermes/
