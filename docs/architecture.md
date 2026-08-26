@@ -54,11 +54,30 @@ Known public drafts declare different namespaces:
 - `https://iso.org/2024/LOIN`
 - `https://iso.org/2022/LOIN`
 
-The current crate exposes and recognizes these constants and implements the
-DT-backed domain subset. It does not decode complete LOIN XML. Future decoding
-must preserve the observed source namespace; future writing must require an
-explicit target namespace. Recognition is not validation, and no namespace
-should be called final until the published standard establishes it.
+The codec records the namespace observed on the root and separately tracks the
+current syntax-tree namespace after migration. Every write requires an explicit
+`OutputNamespace`: preserve current bindings or target a known edition.
+Migration rewrites only names and declarations resolved to the source LOIN URI,
+leaves DT and extension namespaces untouched, reports exact change counts, and
+fails closed if rewritten attributes would collide by expanded name.
+
+Namespace recognition is not validation. The validator checks the audited draft
+schema's unqualified local-element structure and reports namespace misuse, but no
+namespace is called final until the published standard establishes it.
+
+## XML and validation boundaries
+
+The XML parser owns a generic LOIN document syntax tree rather than borrowing
+views from an input buffer. Parsing enforces XML 1.0 safety and resource budgets;
+validation is a separate pass so invalid-but-well-formed documents and unknown
+extensions can still round-trip and be repaired.
+
+The validator is XSD-derived and clause-level. It covers ISO 7817-3-owned
+structures, sequences, choices, cardinalities, enumerations, scalar lexemes, and
+required attributes. DT GUID, language, date/time, and decimal contracts are
+checked through `openbim-dt`. Imported ISO 23387 complex-type internals are
+retained and deliberately not presented as completely XSD-validated. See
+[`xml.md`](xml.md) for the exact guarantee.
 
 ## Workspace independence
 

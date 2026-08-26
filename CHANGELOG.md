@@ -7,6 +7,35 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Added a strict, bounded XML 1.0 `LoinDocument` decoder and writer retaining
+  qualified names, namespace declarations, attribute/node order, comments,
+  processing instructions, CDATA, empty-element style, unknown content, and
+  represented control-character semantics.
+- Added explicit 2022/2024 namespace migration with observed/current namespace
+  tracking, precise reports, non-LOIN namespace isolation, and fail-closed
+  expanded-attribute collision detection.
+- Added XSD-derived ISO 7817-3 structural and lexical validation with stable,
+  path-aware diagnostics for sequences, repeating choices, cardinalities,
+  inherited attributes, enumerations, XSI nil semantics, booleans, exact
+  XML Schema doubles, and DT-owned scalar values.
+- Added synthetic adversarial, migration, validation-coverage, and repeated
+  semantic round-trip tests without including restricted standards artifacts.
+- Expanded the typed domain model to represent the current schema's ordered
+  repeating purpose choice, actor contact/identity fields with restricted email,
+  alphanumerical GUID and optional empty-capable group container, current
+  geometry/detail/location branches, required-document state, datum registry
+  references, and specification-level georeferencing state.
+
+### Changed
+
+- Added direct `quick-xml` and `roxmltree` dependencies for the format-specific
+  syntax tree and strict XML preflight while retaining dependency direction
+  `openbim-loin -> openbim-dt`.
+- Documented validation exactly as clause-level/XSD-derived; imported ISO 23387
+  complex-type internals are retained but are not claimed as fully XSD-validated.
+
 ## [0.2.0] - 2026-08-25
 
 ### Added

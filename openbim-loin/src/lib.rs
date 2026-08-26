@@ -17,22 +17,23 @@
 //! multilingual text, references, concept inheritance, and embedded property,
 //! quantity, group, document, template, unit, and dimension content.
 //!
-//! # 🚨 The namespace is not final
+//! # Namespace versions
 //!
-//! The draft schema carries, in a comment on line 2:
-//!
-//! > `Final LOIN Namespace will be specified after the review process`
-//!
-//! and declares `https://iso.org/2024/LOIN`, while an earlier draft declared
-//! `https://iso.org/2022/LOIN`. Namespace migration is therefore a
-//! *first-class* concern here, not an afterthought: reading must accept known
-//! historical namespaces, and writing must target one explicitly rather than
-//! defaulting to whatever was parsed.
+//! Known documents use the `https://iso.org/2022/LOIN` and
+//! `https://iso.org/2024/LOIN` draft namespaces. Namespace migration is therefore
+//! a *first-class* concern here: reading accepts known historical namespaces,
+//! and writing targets one explicitly rather than defaulting to whatever was
+//! parsed.
 //!
 //! # Status
 //!
-//! The DT-backed domain boundary is implemented. XML reading, writing,
-//! namespace migration, and ISO schema validation are not yet implemented.
+//! The owned DT-backed domain boundary and a strict, bounded XML document codec
+//! are implemented. The codec preserves semantically relevant XML syntax and
+//! unknown content, supports explicit 2022/2024 namespace migration, and exposes
+//! XSD-derived ISO 7817-3 structural and lexical diagnostics. Validation is
+//! clause-level rather than a claim of complete XML Schema validation: imported
+//! ISO 23387 complex-type internals remain owned by `openbim-dt` and outside the
+//! validator's complete coverage.
 //!
 //! The ISO XSD is **not vendored**. Both the ISO/CEN originals and the public
 //! committee drafts are unlicensed for redistribution, and the schema is a
@@ -40,23 +41,28 @@
 
 #![forbid(unsafe_code)]
 
+mod document;
 mod model;
+mod parser;
+mod validation;
 
-pub use model::{
-    Actor, AlphanumericalInformation, DatumRegistryReference, Detail, DocumentFormat,
-    Documentation, GeometricalInformation, InformationDeliveryMilestone, Prerequisites, Purpose,
-    RequiredDocument, Specification, SpecificationPerObjectType, ThresholdDimension,
+pub use document::{
+    LoinDocument, MigrationError, MigrationReport, NamespaceVersion, OutputNamespace, WriteError,
+    XmlAttribute, XmlDeclaration, XmlElement, XmlNode,
 };
+pub use model::*;
 /// Exact ISO 23387 contract version consumed by this LOIN release.
 pub use openbim_dt as dt;
+pub use parser::{ParseError, ParseErrorKind, ParseOptions};
+pub use validation::{Diagnostic, DiagnosticCode, Severity};
 
 /// The namespace declared by the ISO 7817-3 draft schema (2024).
 pub const NAMESPACE_2024: &str = "https://iso.org/2024/LOIN";
 
 /// The namespace declared by the earlier EN 17412-3 committee draft (2022).
 ///
-/// Retained because documents using it exist. Reading should accept it;
-/// writing should not emit it.
+/// Retained because documents using it exist. Reading accepts it and writing
+/// can preserve or target it only through an explicit [`OutputNamespace`] policy.
 pub const NAMESPACE_2022: &str = "https://iso.org/2022/LOIN";
 
 /// Namespaces this crate recognises as LOIN, newest first.

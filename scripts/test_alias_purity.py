@@ -20,6 +20,8 @@ def copy_candidate(destination: Path) -> None:
     scripts = destination / "scripts"
     scripts.mkdir()
     shutil.copy2(ROOT / "scripts/check_alias_purity.py", scripts)
+    for path in (destination, *destination.rglob("*")):
+        path.chmod(path.stat().st_mode | 0o200)
 
 
 def run_checker(candidate: Path) -> subprocess.CompletedProcess[str]:
@@ -145,9 +147,9 @@ def main() -> None:
             "alias version drift with decoy",
             "package versions differ",
             lambda alias, _canonical, _source, _extra: (
-                replace(alias, 'version = "0.2.0"', 'version = "0.2.1"'),
+                replace(alias, 'version = "0.3.0"', 'version = "0.3.1"'),
                 alias.write_text(
-                    'version = "0.2.0"\n' + alias.read_text(encoding="utf-8"),
+                    'version = "0.3.0"\n' + alias.read_text(encoding="utf-8"),
                     encoding="utf-8",
                 ),
             ),
@@ -155,9 +157,9 @@ def main() -> None:
         require_rejection(
             candidate,
             "loose canonical requirement",
-            "requirement must be =0.2.0",
+            "requirement must be =0.3.0",
             lambda alias, _canonical, _source, _extra: replace(
-                alias, 'version = "=0.2.0"', 'version = "0.2.0"'
+                alias, 'version = "=0.3.0"', 'version = "0.3.0"'
             ),
         )
 

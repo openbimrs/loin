@@ -16,24 +16,23 @@ pins it under `packages/loin`.
 
 ## Status
 
-Version `0.2.0` implements the **ISO 23387-backed domain boundary** used by the
-LOIN schema. It is not yet a LOIN XML codec or schema validator.
+The current unreleased line extends the `0.2.0` ISO 23387-backed domain boundary
+with a strict LOIN XML document codec, explicit namespace migration, and
+XSD-derived ISO 7817-3 clause-level validation. Validation is intentionally not
+described as complete W3C XML Schema validation.
 
 | Capability | Status |
 | --- | --- |
 | 2024 and 2022 draft namespace contracts | Implemented and tested |
-| Purpose identity/text/reference fields | Uses `openbim-dt::{Guid, MultiLanguageText, Language, Reference}` directly |
+| Purpose identity/text/imported-reference fields | Uses `openbim-dt::{Guid, MultiLanguageText, Language, Reference}` directly |
 | Per-object specification `ConceptType` base and `ObjectTypeType` field | Uses `openbim-dt::{Concept, ObjectType}` directly |
 | Alphanumerical property, quantity-kind, group, reference-document, unit, and dimension content | Uses the corresponding owned `openbim-dt` type contracts directly |
-| Actor, milestone, format, document, threshold, detail, and registry-reference DT fields | Uses canonical DT value/type contracts directly |
+| Actor, milestone, format, required-document, threshold, detail, datum-registry, and georeferencing fields | Typed to the current XSD shape; imported values use canonical DT contracts directly |
 | Compile-time DT ownership and mutation gates | Implemented |
-| LOIN XML decoding/encoding | Not implemented |
-| Namespace migration | Not implemented |
-| ISO 7817-3 XSD or clause-level validation | Not implemented |
-| Lossless LOIN document round trips | Not implemented |
-
-Parsing a DT element with `openbim-dt` does not imply that this crate can parse a
-whole LOIN document.
+| LOIN XML decoding/encoding | Strict bounded XML 1.0 codec implemented |
+| Namespace migration | Explicit 2022 ↔ 2024 migration with collision detection and reports |
+| ISO 7817-3 validation | XSD-derived LOIN structural, cardinality, enumeration, and scalar checks; not complete XSD validation of imported DT complex types |
+| Lossless LOIN document round trips | Lossless-semantic syntax tree; not byte-for-byte |
 
 ## Crates
 
@@ -49,12 +48,17 @@ API and type identity.
 ## Example
 
 ```rust
-use openbim_loin::{Purpose, dt};
+use openbim_loin::{LoinDocument, OutputNamespace, Purpose, dt};
 
 let guid: dt::Guid = "11111111-1111-1111-1111-111111111111".parse()?;
 let name = dt::MultiLanguageText::new("en", "Coordination")?;
 let purpose = Purpose::new(guid, name);
-assert_eq!(purpose.name().text(), "Coordination");
+assert_eq!(purpose.name().unwrap().text(), "Coordination");
+
+let xml = r#"<l:LevelOfInformationNeed xmlns:l="https://iso.org/2024/LOIN" />"#;
+let document = LoinDocument::parse(xml)?;
+let encoded = document.to_xml_string(OutputNamespace::Preserve)?;
+assert_eq!(LoinDocument::parse(&encoded)?.root(), document.root());
 # Ok::<(), Box<dyn std::error::Error>>(())
 ```
 
@@ -67,9 +71,9 @@ LOIN clients.
 Use either package name:
 
 ```bash
-cargo add openbim-loin@0.2
+cargo add openbim-loin@0.3
 # or
-cargo add loin@0.2
+cargo add loin@0.3
 ```
 
 Do not depend on both names directly. The alias already brings in the canonical
@@ -78,13 +82,15 @@ package at an exact version.
 ## Architecture
 
 - [`docs/architecture.md`](docs/architecture.md) — repository, dependency, namespace, DT, and alias boundaries
+- [`docs/xml.md`](docs/xml.md) — codec guarantees, migration semantics, and exact validation coverage
 - [`openbimrs/dt`](https://github.com/openbimrs/dt) — canonical ISO 23387 contracts
 - [`openbimrs/openbim`](https://github.com/openbimrs/openbim) — integrated workspace and facade
 
 
 Drafts use both `https://iso.org/2022/LOIN` and
-`https://iso.org/2024/LOIN`. A future codec must preserve the observed namespace
-and require an explicit output target rather than silently migrating it.
+`https://iso.org/2024/LOIN`. The codec preserves the observed namespace and
+every write requires an explicit preserve-or-target policy. Migration rewrites
+only LOIN bindings and fails closed on expanded-attribute collisions.
 
 ## Standards material
 

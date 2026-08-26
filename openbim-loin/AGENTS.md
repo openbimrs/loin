@@ -13,7 +13,15 @@ All LOIN implementation and public items live here.
 
 ## Status
 
-Namespace constants, recognition, and DT-backed value, `ConceptType`, object-type,
-alphanumerical-information, documentation, and registry-reference boundaries are
-implemented and tested. Complete LOIN XML codec, migration, schema validation,
-and lossless LOIN-document round trips are not implemented.
+The DT-backed domain boundary and strict LOIN XML document codec are implemented.
+Entry points:
+
+- `src/document.rs`: owned lossless-semantic syntax tree, explicit writing, and
+  migration with collision refusal;
+- `src/parser.rs`: bounded XML 1.0 parsing and namespace/QName enforcement;
+- `src/validation.rs`: ISO 7817-3 XSD-derived clause-level diagnostics;
+- `src/model.rs`: owned domain contracts backed by `openbim-dt`.
+
+Validation is intentionally not advertised as complete XSD validation: imported
+ISO 23387 complex content is retained and receives DT scalar checks, but complete
+validation of that imported grammar remains the DT layer's responsibility.
