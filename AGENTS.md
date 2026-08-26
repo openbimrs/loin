@@ -1,9 +1,10 @@
 # LOIN repository instructions
 
 This repository owns the OpenBIM.rs implementation of ISO 7817-3 / EN 17412-3
-Level of Information Need and its short-name package alias. The published crates
-currently expose namespace contracts only; do not describe XML parsing,
-validation, migration, or writing as implemented without executable evidence.
+Level of Information Need and its short-name package alias. The crate source
+implements namespace contracts and the DT-backed domain boundary. Do not
+describe complete LOIN XML parsing, validation, migration, or writing as
+implemented without executable evidence.
 
 ## Map
 

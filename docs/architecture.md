@@ -13,8 +13,8 @@ dependencies, not inheritance from a parent workspace.
 ## Package identity
 
 ```text
-loin  -- exact-version dependency -->  openbim-loin  -->  openbim-core
-(alias; no items)                       (all behavior)
+loin  -- exact-version dependency -->  openbim-loin  -->  openbim-dt
+(alias; no items)                       (all LOIN behavior)
 ```
 
 Cargo permits consumers to rename a dependency locally, but crates.io has no
@@ -38,8 +38,11 @@ core / data templates / XML codec  <-  LOIN
 openbim facade  --------------------->+
 ```
 
-- LOIN may consume shared vocabulary, ISO 23387 data-template contracts, and XML
-  encoding infrastructure.
+- LOIN consumes `openbim-dt 0.2` directly and re-exports it as
+  `openbim_loin::dt`. Imported GUID, language, multilingual-text, reference,
+  `ConceptType`, object-type, property, group, quantity-kind, reference-document,
+  unit, and dimension boundaries therefore keep one DT-owned Rust type identity.
+- LOIN may consume shared vocabulary and direct XML encoding infrastructure.
 - IFC, core, codec, and data-template crates must never depend on LOIN.
 - The `openbim` facade may optionally re-export LOIN.
 - A future IFC mapping belongs in an explicit bridge, not in the LOIN data model.
@@ -51,7 +54,8 @@ Known public drafts declare different namespaces:
 - `https://iso.org/2024/LOIN`
 - `https://iso.org/2022/LOIN`
 
-The current crate only exposes and recognizes these constants. Future decoding
+The current crate exposes and recognizes these constants and implements the
+DT-backed domain subset. It does not decode complete LOIN XML. Future decoding
 must preserve the observed source namespace; future writing must require an
 explicit target namespace. Recognition is not validation, and no namespace
 should be called final until the published standard establishes it.
@@ -60,9 +64,9 @@ should be called final until the published standard establishes it.
 
 Package version, edition, MSRV, license, authors, repository, and
 cross-repository dependency versions are explicit in each published manifest.
-The parent integration workspace substitutes its local `openbim-core` through a
-`[patch.crates-io]` entry, guaranteeing one package identity while exercising
-the exact pinned child commit.
+The parent integration workspace substitutes local `openbim-dt` through
+`[patch.crates-io]`, guaranteeing one package identity while exercising exact
+pinned child commits.
 
 ## Standards artifacts
 

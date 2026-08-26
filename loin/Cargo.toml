@@ -1,6 +1,6 @@
 [package]
 name = "loin"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.88"
 license = "MIT"
@@ -10,9 +10,9 @@ readme = "README.md"
 exclude = ["AGENTS.md", "PLAN.md"]
 description = "ISO 7817-3 / EN 17412-3 LOIN alias: re-exports openbim-loin."
 keywords = ["bim", "openbim", "aec"]
-categories = ["parser-implementations", "data-structures"]
+categories = ["data-structures"]
 
 [dependencies]
 # Exact pin prevents the alias and canonical package from exposing different
 # versions of the same API in one dependency graph.
-openbim-loin = { path = "../openbim-loin", version = "=0.1.0" }
+openbim-loin = { path = "../openbim-loin", version = "=0.2.0" }

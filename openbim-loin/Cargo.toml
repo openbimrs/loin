@@ -1,6 +1,6 @@
 [package]
 name = "openbim-loin"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.88"
 license = "MIT"
@@ -10,7 +10,7 @@ readme = "README.md"
 exclude = ["AGENTS.md", "PLAN.md"]
 description = "ISO 7817-3 / EN 17412-3 LOIN (Level of Information Need)."
 keywords = ["bim", "openbim", "ifc", "aec"]
-categories = ["parser-implementations", "data-structures"]
+categories = ["data-structures"]
 
 [dependencies]
-openbim-core = "0.1.0"
+openbim-dt = "0.2.0"

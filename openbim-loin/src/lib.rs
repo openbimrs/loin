@@ -12,9 +12,10 @@
 //!
 //! # Relationship to ISO 23387
 //!
-//! The LOIN schema imports the ISO 23387 namespace for its property
-//! vocabulary. A future codec is expected to consume `openbim-dt` contracts,
-//! but this reserved scaffold does not yet decode that vocabulary.
+//! The LOIN schema imports the ISO 23387 namespace for its property vocabulary.
+//! This crate therefore uses and re-exports `openbim-dt` contracts for GUIDs,
+//! multilingual text, references, concept inheritance, and embedded property,
+//! quantity, group, document, template, unit, and dimension content.
 //!
 //! # 🚨 The namespace is not final
 //!
@@ -30,13 +31,24 @@
 //!
 //! # Status
 //!
-//! **Reserved — no implementation.** Published to establish the name.
+//! The DT-backed domain boundary is implemented. XML reading, writing,
+//! namespace migration, and ISO schema validation are not yet implemented.
 //!
 //! The ISO XSD is **not vendored**. Both the ISO/CEN originals and the public
 //! committee drafts are unlicensed for redistribution, and the schema is a
 //! moving target; it is referenced out of tree instead.
 
 #![forbid(unsafe_code)]
+
+mod model;
+
+pub use model::{
+    Actor, AlphanumericalInformation, DatumRegistryReference, Detail, DocumentFormat,
+    Documentation, GeometricalInformation, InformationDeliveryMilestone, Prerequisites, Purpose,
+    RequiredDocument, Specification, SpecificationPerObjectType, ThresholdDimension,
+};
+/// Exact ISO 23387 contract version consumed by this LOIN release.
+pub use openbim_dt as dt;
 
 /// The namespace declared by the ISO 7817-3 draft schema (2024).
 pub const NAMESPACE_2024: &str = "https://iso.org/2024/LOIN";

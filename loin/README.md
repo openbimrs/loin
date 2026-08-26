@@ -8,14 +8,13 @@ its own, so both package names expose one canonical API and one type identity.
 The dependency is pinned to the exact canonical version.
 
 ```toml
-loin = "0.1"
+loin = "0.2"
 # equivalent API to:
-openbim-loin = "0.1"
+openbim-loin = "0.2"
 ```
 
-Use whichever package name reads better in your project. Do not depend on both.
-The current release exposes namespace contracts only; it is not a parser,
-writer, migrator, or validator.
+Version `0.2` exposes DT-backed LOIN domain contracts. It does not yet expose a
+complete LOIN XML reader, writer, namespace migrator, or XSD validator.
 
 ## Documentation
 

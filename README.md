@@ -12,53 +12,64 @@ information, and documentation at a given purpose and milestone.
 
 This repository is the canonical home of the LOIN family in
 [OpenBIM.rs](https://github.com/openbimrs/openbim). The integration repository
-pins this repository under `packages/loin`.
+pins it under `packages/loin`.
 
 ## Status
 
-The published `0.1.0` releases are **reserved scaffolds with namespace
-contracts**, not a LOIN document reader, writer, or validator.
+Version `0.2.0` implements the **ISO 23387-backed domain boundary** used by the
+LOIN schema. It is not yet a LOIN XML codec or schema validator.
 
 | Capability | Status |
 | --- | --- |
-| 2024 and 2022 draft namespace constants | Implemented |
-| Known-namespace recognition helper | Implemented and tested |
-| Two synchronized crates.io names | Implemented and structurally gated |
+| 2024 and 2022 draft namespace contracts | Implemented and tested |
+| Purpose identity/text/reference fields | Uses `openbim-dt::{Guid, MultiLanguageText, Language, Reference}` directly |
+| Per-object specification `ConceptType` base and `ObjectTypeType` field | Uses `openbim-dt::{Concept, ObjectType}` directly |
+| Alphanumerical property, quantity-kind, group, reference-document, unit, and dimension content | Uses the corresponding owned `openbim-dt` type contracts directly |
+| Actor, milestone, format, document, threshold, detail, and registry-reference DT fields | Uses canonical DT value/type contracts directly |
+| Compile-time DT ownership and mutation gates | Implemented |
 | LOIN XML decoding/encoding | Not implemented |
 | Namespace migration | Not implemented |
-| ISO 7817-3 validation | Not implemented |
-| Lossless unknown-data round-trip | Not implemented |
+| ISO 7817-3 XSD or clause-level validation | Not implemented |
+| Lossless LOIN document round trips | Not implemented |
 
-No parser, writer, migration, or validation capability should be inferred from
-the crates existing on crates.io.
+Parsing a DT element with `openbim-dt` does not imply that this crate can parse a
+whole LOIN document.
 
 ## Crates
 
 | Package | Purpose |
 | --- | --- |
-| [`openbim-loin`](openbim-loin/) | Canonical implementation; owns every item and behavior |
+| [`openbim-loin`](openbim-loin/) | Canonical implementation; owns every LOIN item and behavior |
 | [`loin`](loin/) | Pure re-export alias pinned to the exact canonical version |
 
-Cargo has dependency renaming but no crates.io package aliases. Two package
-records are therefore required to reserve both names. `loin` defines nothing of
-its own and re-exports `openbim-loin`, so both names expose the same items rather
-than compiling duplicate implementations.
+Cargo has dependency renaming but no crates.io package aliases. The `loin`
+package defines nothing and re-exports `openbim-loin`, preserving one canonical
+API and type identity.
+
+## Example
+
+```rust
+use openbim_loin::{Purpose, dt};
+
+let guid: dt::Guid = "11111111-1111-1111-1111-111111111111".parse()?;
+let name = dt::MultiLanguageText::new("en", "Coordination")?;
+let purpose = Purpose::new(guid, name);
+assert_eq!(purpose.name().text(), "Coordination");
+# Ok::<(), Box<dyn std::error::Error>>(())
+```
+
+`openbim-loin::dt` re-exports the exact `openbim-dt` contract version consumed by
+this release. Do not create lookalike GUID, text, reference, or property types in
+LOIN clients.
 
 ## Install
 
 Use either package name:
 
 ```bash
-cargo add openbim-loin
+cargo add openbim-loin@0.2
 # or
-cargo add loin
-```
-
-```rust
-use openbim_loin::{is_known_namespace, NAMESPACE_2024};
-
-assert!(is_known_namespace(NAMESPACE_2024));
-// The short package exposes the same items under `loin::`.
+cargo add loin@0.2
 ```
 
 Do not depend on both names directly. The alias already brings in the canonical
@@ -66,15 +77,14 @@ package at an exact version.
 
 ## Architecture
 
-- [`docs/architecture.md`](docs/architecture.md) — repository, dependency, namespace, and alias boundaries
+- [`docs/architecture.md`](docs/architecture.md) — repository, dependency, namespace, DT, and alias boundaries
+- [`openbimrs/dt`](https://github.com/openbimrs/dt) — canonical ISO 23387 contracts
 - [`openbimrs/openbim`](https://github.com/openbimrs/openbim) — integrated workspace and facade
-- [`openbim-core`](https://crates.io/crates/openbim-core) — shared openBIM vocabulary
 
-LOIN is deliberately exchange-format focused. EN 17412-1 defines the concepts;
-part 3 defines the machine-readable exchange. Drafts use both
-`https://iso.org/2022/LOIN` and `https://iso.org/2024/LOIN`, so a future codec
-must treat namespace migration as explicit behavior rather than silently
-normalizing input.
+
+Drafts use both `https://iso.org/2022/LOIN` and
+`https://iso.org/2024/LOIN`. A future codec must preserve the observed namespace
+and require an explicit output target rather than silently migrating it.
 
 ## Standards material
 
@@ -85,8 +95,7 @@ with this repository.
 
 ## Development
 
-Requires Rust `1.88` or newer and Python `3.10` or newer for the semantic alias
-and mutation gates.
+Requires Rust `1.88` or newer and Python `3.10` or newer.
 
 ```bash
 git clone https://github.com/openbimrs/loin.git
@@ -94,9 +103,10 @@ cd loin
 ./scripts/gate.sh
 ```
 
-The gate checks formatting, build, tests, Clippy, rustdoc, semantic alias purity,
-isolated alias mutations, and crates.io package verification using command exit
-codes.
+The gate checks formatting, build, tests, Clippy, rustdoc, DT contract
+ownership, semantic alias purity, isolated mutations, and canonical crates.io
+package verification using command exit codes. The alias package is verified
+after its exact canonical version is registry-visible.
 
 ## Contributing
 

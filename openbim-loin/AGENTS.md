@@ -13,5 +13,7 @@ All LOIN implementation and public items live here.
 
 ## Status
 
-Namespace constants and recognition are implemented and tested. XML codec,
-migration, validation, and lossless round-trip are not implemented.
+Namespace constants, recognition, and DT-backed value, `ConceptType`, object-type,
+alphanumerical-information, documentation, and registry-reference boundaries are
+implemented and tested. Complete LOIN XML codec, migration, schema validation,
+and lossless LOIN-document round trips are not implemented.

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -27,9 +28,16 @@ def normalized(path: str | Path) -> Path:
     return Path(path).resolve()
 
 
+command = ["cargo"]
+if patch_path := os.environ.get("OPENBIM_DT_PATCH_PATH"):
+    command.extend(
+        ["--config", f'patch.crates-io.openbim-dt.path="{patch_path}"']
+    )
+command.extend(["metadata", "--no-deps", "--format-version", "1"])
+
 metadata = json.loads(
     subprocess.run(
-        ["cargo", "metadata", "--no-deps", "--format-version", "1"],
+        command,
         cwd=ROOT,
         check=True,
         capture_output=True,

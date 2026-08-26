@@ -19,7 +19,8 @@ success from command exit codes.
 - Pure Rust; unsafe code is forbidden.
 - `openbim-loin` owns every implementation and type.
 - `loin` is a pure, exact-version re-export alias and defines no types.
-- LOIN consumes core/data-template/XML contracts; those layers never depend on LOIN.
+- LOIN consumes data-template contracts directly; add core or XML dependencies
+  only when implementation source uses them. Lower layers never depend on LOIN.
 - Namespace versioning is explicit because existing drafts use different URIs.
 - Never commit standards PDFs, schemas, or other artifacts without confirmed
   redistribution rights. Local material belongs under ignored `references/`.

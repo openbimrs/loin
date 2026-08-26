@@ -145,9 +145,9 @@ def main() -> None:
             "alias version drift with decoy",
             "package versions differ",
             lambda alias, _canonical, _source, _extra: (
-                replace(alias, 'version = "0.1.0"', 'version = "0.1.1"'),
+                replace(alias, 'version = "0.2.0"', 'version = "0.2.1"'),
                 alias.write_text(
-                    'version = "0.1.0"\n' + alias.read_text(encoding="utf-8"),
+                    'version = "0.2.0"\n' + alias.read_text(encoding="utf-8"),
                     encoding="utf-8",
                 ),
             ),
@@ -155,9 +155,9 @@ def main() -> None:
         require_rejection(
             candidate,
             "loose canonical requirement",
-            "requirement must be =0.1.0",
+            "requirement must be =0.2.0",
             lambda alias, _canonical, _source, _extra: replace(
-                alias, 'version = "=0.1.0"', 'version = "0.1.0"'
+                alias, 'version = "=0.2.0"', 'version = "0.2.0"'
             ),
         )
 
