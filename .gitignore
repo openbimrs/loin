@@ -9,3 +9,6 @@
 .idea/
 .vscode/
 .hermes/
+
+# Local scratch worktrees for iterative review/dev — never tracked.
+/.worktrees/
