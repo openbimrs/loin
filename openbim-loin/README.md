@@ -44,4 +44,4 @@ of the published package; public tests use synthetic documents.
 
 ## License
 
-MIT
+AGPL-3.0-or-later
