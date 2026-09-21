@@ -150,4 +150,4 @@ evidence and update the status table without overstating coverage.
 
 ## License
 
-AGPL-3.0-or-later — see [`LICENSE`](LICENSE).
+MIT — see [`LICENSE`](LICENSE).

@@ -7,6 +7,14 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Relicensed repository-authored work from `AGPL-3.0-or-later` back to `MIT`.
+  No version was ever published under the AGPL — the relicense landed after
+  `0.2.0` and was reverted before any release, so every published version of
+  `openbim-loin` and `loin` is MIT. `LICENSING.md` records the version
+  boundaries. Resolves #11.
+
 ### Added
 
 - `Purpose::names`, `definitions`, `descriptions`, `reference_documents`,
@@ -16,14 +24,6 @@ and this project follows [Semantic Versioning](https://semver.org/).
   the first occurrence.
 - `tests/schema_conformance.rs`, pinning grammar facts read from the official
   ISO 7817-3 Annex B XSD.
-
-### Fixed
-
-- `ShapeInfluence` field order now matches the XSD `xs:sequence`
-  (`ThresholdDimension` last), so a serializer walking fields in declaration
-  order emits valid document order.
-
-
 - `LoinDocument::from_model` converts a `LevelOfInformationNeed` into a
   document, so LOIN files can be authored and not only parsed. Output is
   written in schema sequence order and revalidates after a reparse.
@@ -41,6 +41,9 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- `ShapeInfluence` field order now matches the XSD `xs:sequence`
+  (`ThresholdDimension` last), so a serializer walking fields in declaration
+  order emits valid document order.
 - `Purpose` setters (`set_definition`, `set_language`, `set_region`,
   `set_dictionary_ref`) now replace an existing item in place instead of
   removing it and appending the replacement, which silently reordered the

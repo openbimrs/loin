@@ -15,7 +15,7 @@ success from command exit codes.
 
 ## Project conventions
 
-- Rust 2021, MSRV 1.88, Python 3.10+ for gate scripts, AGPL-3.0-or-later.
+- Rust 2021, MSRV 1.88, Python 3.10+ for gate scripts, MIT.
 - Pure Rust; unsafe code is forbidden.
 - `openbim-loin` owns every implementation and type.
 - `loin` is a pure, exact-version re-export alias and defines no types.
