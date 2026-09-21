@@ -41,11 +41,18 @@
 
 #![forbid(unsafe_code)]
 
+mod authoring;
 mod document;
 mod model;
 mod parser;
 mod validation;
 
+pub use authoring::AuthoringError;
+
+/// Why ISO 23387-owned complex content cannot be written by this crate.
+///
+/// Exposed so consumers can match on the reason rather than on message text.
+pub const DT_UNWRITABLE_REASON: &str = "openbim-dt 0.2 exposes no serializer for its owned types and dt::Element cannot be built downstream";
 pub use document::{
     LoinDocument, MigrationError, MigrationReport, NamespaceVersion, OutputNamespace, WriteError,
     XmlAttribute, XmlDeclaration, XmlElement, XmlNode,

@@ -62,6 +62,35 @@ assert_eq!(LoinDocument::parse(&encoded)?.root(), document.root());
 # Ok::<(), Box<dyn std::error::Error>>(())
 ```
 
+## Writing documents
+
+`LoinDocument::from_model` builds a document from the typed model, so documents
+can be authored rather than only parsed:
+
+```rust
+use openbim_loin::{LevelOfInformationNeed, LoinDocument, OutputNamespace};
+
+# fn demo(model: &LevelOfInformationNeed) -> Result<(), Box<dyn std::error::Error>> {
+let document = LoinDocument::from_model(model)?;
+let xml = document.to_xml_string(OutputNamespace::Preserve)?;
+assert!(document.validate().is_empty());
+# Ok(())
+# }
+```
+
+Children are written in the order the schema declares, and the output reparses
+and revalidates unchanged.
+
+**Scope.** LOIN-owned content is written in full. ISO 23387-owned complex
+content (`ObjectType`, `Property`, `QuantityKind`, `Dimension`, `Unit`,
+`ReferenceDocument`, `GroupOfProperties`) is **not** writable here: the
+`openbim-dt` 0.2 owned types expose no serializer and `dt::Element` cannot be
+constructed downstream. Those cases return
+`AuthoringError::UnwritableDtContent`, naming the element, instead of emitting
+invented ISO 23387 syntax. To edit such documents today, parse one and mutate
+it through `XmlElement::nodes_mut` / `attributes_mut`, which keeps the DT
+subtrees verbatim.
+
 `openbim-loin::dt` re-exports the exact `openbim-dt` contract version consumed by
 this release. Do not create lookalike GUID, text, reference, or property types in
 LOIN clients.

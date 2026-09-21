@@ -11,6 +11,14 @@ use quick_xml::{
     Writer,
 };
 
+use openbim_dt as dt;
+
+/// Prefix bound to the LOIN namespace on authored roots.
+const LOIN_PREFIX: &str = "loin";
+
+/// The reserved namespace that `xmlns` declarations themselves belong to.
+const XMLNS_NAMESPACE: &str = "http://www.w3.org/2000/xmlns/";
+
 use crate::{
     parser::{parse_document, ParseError, ParseOptions},
     validation, NAMESPACE_2022, NAMESPACE_2024,
@@ -145,6 +153,56 @@ impl XmlAttribute {
         }
     }
 
+    /// Builds an unprefixed attribute, used by LOIN's own local attributes.
+    #[must_use]
+    pub fn new(local_name: impl Into<String>, value: impl Into<String>) -> Self {
+        let local_name = local_name.into();
+        Self {
+            qname: local_name.clone(),
+            prefix: None,
+            local_name,
+            namespace_uri: None,
+            value: value.into(),
+        }
+    }
+
+    /// Builds an `xmlns` / `xmlns:prefix` declaration.
+    ///
+    /// Namespace declarations live in the reserved xmlns namespace; they are
+    /// attributes syntactically but bind prefixes rather than carry data.
+    #[must_use]
+    pub fn namespace_declaration(prefix: Option<&str>, uri: impl Into<String>) -> Self {
+        match prefix {
+            None => Self {
+                qname: "xmlns".to_owned(),
+                prefix: None,
+                local_name: "xmlns".to_owned(),
+                namespace_uri: Some(Arc::from(XMLNS_NAMESPACE)),
+                value: uri.into(),
+            },
+            Some(prefix) => Self {
+                qname: format!("xmlns:{prefix}"),
+                prefix: Some("xmlns".to_owned()),
+                local_name: prefix.to_owned(),
+                namespace_uri: Some(Arc::from(XMLNS_NAMESPACE)),
+                value: uri.into(),
+            },
+        }
+    }
+
+    /// Builds an attribute in the ISO 23387 namespace, such as `dt:GUID`.
+    #[must_use]
+    pub fn new_dt(local_name: impl Into<String>, value: impl Into<String>) -> Self {
+        let local_name = local_name.into();
+        Self {
+            qname: format!("dt:{local_name}"),
+            prefix: Some("dt".to_owned()),
+            local_name,
+            namespace_uri: Some(Arc::from(dt::NAMESPACE)),
+            value: value.into(),
+        }
+    }
+
     #[must_use]
     pub fn qname(&self) -> &str {
         &self.qname
@@ -201,6 +259,103 @@ impl XmlElement {
             nodes: Vec::new(),
             empty_style,
         }
+    }
+
+    /// Builds a schema-local LOIN element.
+    ///
+    /// ISO 7817-3 declares `elementFormDefault="unqualified"`, so every element
+    /// below the root is unprefixed *and* in no namespace. Only the root
+    /// element carries the LOIN namespace.
+    #[must_use]
+    pub fn new(local_name: impl Into<String>) -> Self {
+        let local_name = local_name.into();
+        Self {
+            qname: local_name.clone(),
+            prefix: None,
+            local_name,
+            namespace_uri: None,
+            attributes: Vec::new(),
+            nodes: Vec::new(),
+            empty_style: false,
+        }
+    }
+
+    /// Builds the document root, which carries the LOIN namespace itself.
+    ///
+    /// Unlike [`Self::new`], the root is namespace-qualified: it is the element
+    /// that declares the LOIN namespace for the whole document.
+    #[must_use]
+    pub fn new_root(local_name: impl Into<String>) -> Self {
+        let local_name = local_name.into();
+        Self {
+            qname: format!("{LOIN_PREFIX}:{local_name}"),
+            prefix: Some(LOIN_PREFIX.to_owned()),
+            local_name,
+            namespace_uri: Some(Arc::from(NAMESPACE_2024)),
+            attributes: Vec::new(),
+            nodes: Vec::new(),
+            empty_style: false,
+        }
+    }
+
+    /// Builds an element in the ISO 23387 namespace, carrying the `dt` prefix.
+    #[must_use]
+    pub fn new_dt(local_name: impl Into<String>) -> Self {
+        let local_name = local_name.into();
+        Self {
+            qname: format!("dt:{local_name}"),
+            prefix: Some("dt".to_owned()),
+            local_name,
+            namespace_uri: Some(Arc::from(dt::NAMESPACE)),
+            attributes: Vec::new(),
+            nodes: Vec::new(),
+            empty_style: false,
+        }
+    }
+
+    /// Appends an attribute, keeping declaration order.
+    #[must_use]
+    pub fn with_attribute(mut self, attribute: XmlAttribute) -> Self {
+        self.attributes.push(attribute);
+        self
+    }
+
+    /// Appends a child element, preserving `xs:sequence` document order.
+    #[must_use]
+    pub fn with_child(mut self, child: Self) -> Self {
+        self.nodes.push(XmlNode::Element(child));
+        self
+    }
+
+    /// Appends character data, coalescing with any adjacent text node.
+    #[must_use]
+    pub fn with_text(mut self, text: impl Into<String>) -> Self {
+        self.push(XmlNode::Text(text.into()));
+        self
+    }
+
+    /// Serializes as `<name/>` rather than `<name></name>`.
+    ///
+    /// Purely a serialization style; the two forms are semantically equal.
+    #[must_use]
+    pub const fn as_empty_element(mut self) -> Self {
+        self.empty_style = true;
+        self
+    }
+
+    /// Appends any node, for callers assembling mixed content directly.
+    pub fn push_node(&mut self, node: XmlNode) {
+        self.push(node);
+    }
+
+    /// Mutable access to child nodes, for editing a parsed document in place.
+    pub fn nodes_mut(&mut self) -> &mut Vec<XmlNode> {
+        &mut self.nodes
+    }
+
+    /// Mutable access to attributes, for editing a parsed document in place.
+    pub fn attributes_mut(&mut self) -> &mut Vec<XmlAttribute> {
+        &mut self.attributes
     }
 
     #[must_use]
@@ -328,6 +483,35 @@ impl LoinDocument {
         parse_document(xml, options)
     }
 
+    /// Builds a document around an authored root element.
+    ///
+    /// Declares the LOIN namespace as the default and binds the `dt` prefix for
+    /// ISO 23387 content, so serialized output reparses with the same resolved
+    /// namespaces it was built with.
+    pub(crate) fn authored(root: XmlElement) -> Self {
+        // The LOIN namespace is bound to a PREFIX, never declared as the
+        // default. ISO 7817-3 is elementFormDefault="unqualified", so a default
+        // declaration would silently pull every schema-local child into the
+        // namespace on reparse and make the document invalid.
+        let root = root
+            .with_attribute(XmlAttribute::namespace_declaration(
+                Some(LOIN_PREFIX),
+                NAMESPACE_2024,
+            ))
+            .with_attribute(XmlAttribute::namespace_declaration(
+                Some("dt"),
+                dt::NAMESPACE,
+            ));
+        Self {
+            declaration: None,
+            prolog: Vec::new(),
+            root,
+            epilog: Vec::new(),
+            observed_namespace: NamespaceVersion::Draft2024,
+            current_namespace: NamespaceVersion::Draft2024,
+        }
+    }
+
     pub(crate) fn parsed(
         declaration: Option<XmlDeclaration>,
         prolog: Vec<XmlNode>,
@@ -358,6 +542,13 @@ impl LoinDocument {
     #[must_use]
     pub const fn root(&self) -> &XmlElement {
         &self.root
+    }
+
+    /// Mutable access to the root element, for editing a parsed document.
+    ///
+    /// Edits bypass validation, so call [`Self::validate`] afterwards.
+    pub fn root_mut(&mut self) -> &mut XmlElement {
+        &mut self.root
     }
 
     #[must_use]

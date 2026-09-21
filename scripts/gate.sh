@@ -68,3 +68,4 @@ printf 'alias package verification deferred until openbim-loin 0.3.0 is registry
 ./scripts/test-dt-boundary.sh
 ./scripts/test-schema-shape.sh
 python3 scripts/test-xml-capability.py
+python3 scripts/test-authoring-mutations.py

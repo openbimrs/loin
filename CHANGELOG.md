@@ -9,6 +9,30 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `LoinDocument::from_model` converts a `LevelOfInformationNeed` into a
+  document, so LOIN files can be authored and not only parsed. Output is
+  written in schema sequence order and revalidates after a reparse.
+- Public construction and mutation API on the document tree: `XmlElement::new`,
+  `new_root`, `new_dt`, `with_attribute`, `with_child`, `with_text`,
+  `as_empty_element`, `push_node`, `nodes_mut`, `attributes_mut`,
+  `XmlAttribute::new` / `new_dt` / `namespace_declaration`, and
+  `LoinDocument::root_mut`.
+- `AuthoringError`, which names the element that could not be written and why,
+  rather than silently dropping content.
+- Getters for previously write-only values: `InformationDeliveryMilestone`
+  (`descriptions`, `reference_documents`, `date`), `DocumentFormat` (`names`,
+  `versions`, `specifications`), and `Document` (`name`, `descriptions`,
+  `format`).
+
+### Fixed
+
+- `Purpose` setters (`set_definition`, `set_language`, `set_region`,
+  `set_dictionary_ref`) now replace an existing item in place instead of
+  removing it and appending the replacement, which silently reordered the
+  document.
+
+### Added
+
 - Added a strict, bounded XML 1.0 `LoinDocument` decoder and writer retaining
   qualified names, namespace declarations, attribute/node order, comments,
   processing instructions, CDATA, empty-element style, unknown content, and

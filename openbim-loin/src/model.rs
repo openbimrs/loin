@@ -124,10 +124,34 @@ impl Purpose {
         if replacement.is_none() && self.items.iter().all(&matches) {
             return Err(EmptyPurpose);
         }
-        self.items.retain(|item| !matches(item));
-        if let Some(replacement) = replacement {
-            self.items.push(replacement);
+        // Replace the first match where it already sits. Appending instead
+        // would relocate the item within this ordered choice and silently
+        // rewrite document order (issue #5).
+        match self.items.iter().position(&matches) {
+            Some(index) => match replacement {
+                Some(replacement) => self.items[index] = replacement,
+                None => {
+                    self.items.remove(index);
+                }
+            },
+            // Nothing to replace: a new value is appended, which is the only
+            // position the schema can justify for an item that was absent.
+            None => {
+                if let Some(replacement) = replacement {
+                    self.items.push(replacement);
+                }
+            }
         }
+        // Later duplicates would make the setter's single-value view a lie.
+        let mut seen = false;
+        self.items.retain(|item| {
+            if matches(item) {
+                let first = !seen;
+                seen = true;
+                return first;
+            }
+            true
+        });
         Ok(())
     }
     pub fn set_definition(&mut self, value: Option<MultiLanguageText>) -> Result<(), EmptyPurpose> {
@@ -289,6 +313,18 @@ impl InformationDeliveryMilestone {
     }
     pub fn set_date(&mut self, value: Option<DateTime>) {
         self.date = value;
+    }
+    #[must_use]
+    pub fn descriptions(&self) -> &[MultiLanguageText] {
+        &self.descriptions
+    }
+    #[must_use]
+    pub fn reference_documents(&self) -> &[Reference] {
+        &self.reference_documents
+    }
+    #[must_use]
+    pub const fn date(&self) -> Option<&DateTime> {
+        self.date.as_ref()
     }
 }
 
@@ -621,6 +657,18 @@ impl DocumentFormat {
     pub fn add_specification(&mut self, value: Reference) {
         self.specifications.push(value);
     }
+    #[must_use]
+    pub fn names(&self) -> &[MultiLanguageText] {
+        &self.names
+    }
+    #[must_use]
+    pub fn versions(&self) -> &[MultiLanguageText] {
+        &self.versions
+    }
+    #[must_use]
+    pub fn specifications(&self) -> &[Reference] {
+        &self.specifications
+    }
 }
 
 /// LOIN `DocumentationType`, whose identity attribute is DT-owned.
@@ -839,6 +887,18 @@ impl Document {
     }
     pub fn add_description(&mut self, value: MultiLanguageText) {
         self.descriptions.push(value);
+    }
+    #[must_use]
+    pub const fn name(&self) -> &MultiLanguageText {
+        &self.name
+    }
+    #[must_use]
+    pub fn descriptions(&self) -> &[MultiLanguageText] {
+        &self.descriptions
+    }
+    #[must_use]
+    pub const fn format(&self) -> &DocumentFormat {
+        &self.format
     }
     pub fn set_document_type(&mut self, value: Option<String>) {
         self.document_type = value;
