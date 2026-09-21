@@ -172,7 +172,7 @@ fn purpose_repeating_choice_requires_content_and_accepts_reordered_repeated_bran
 fn alphanumerical_choice_accepts_empty_content_but_requires_identity() {
     let valid = document(
         r#"<SpecificationPerObjectType dt:GUID="70000000-0000-0000-0000-000000000000" dateOfCreation="2026-08-26T00:00:00Z">
-      <dt:Name/><ObjectType /><AlphanumericalInformation dt:GUID="80000000-0000-0000-0000-000000000000" />
+      <dt:Name language="en"/><ObjectType /><AlphanumericalInformation dt:GUID="80000000-0000-0000-0000-000000000000" />
     </SpecificationPerObjectType>"#,
     );
     assert!(
@@ -206,7 +206,7 @@ fn required_attributes_language_and_exact_double_lexemes_are_checked() {
         .any(|diagnostic| diagnostic.code() == DiagnosticCode::InvalidLanguage));
 
     let double = document(
-        r#"<SpecificationPerObjectType dt:GUID="70000000-0000-0000-0000-000000000000" dateOfCreation="2026-08-26T00:00:00Z"><dt:Name/><ObjectType/><GeometricalInformation dt:GUID="80000000-0000-0000-0000-000000000000"><Detail><ShapeInfluence><ThresholdDimension><Threshold>inf</Threshold><Unit/><Definition language="en">Tolerance</Definition></ThresholdDimension></ShapeInfluence></Detail></GeometricalInformation></SpecificationPerObjectType>"#,
+        r#"<SpecificationPerObjectType dt:GUID="70000000-0000-0000-0000-000000000000" dateOfCreation="2026-08-26T00:00:00Z"><dt:Name language="en"/><ObjectType/><GeometricalInformation dt:GUID="80000000-0000-0000-0000-000000000000"><Detail><ShapeInfluence><ThresholdDimension><Threshold>inf</Threshold><Unit/><Definition language="en">Tolerance</Definition></ThresholdDimension></ShapeInfluence></Detail></GeometricalInformation></SpecificationPerObjectType>"#,
     );
     assert!(errors(&double)
         .iter()
@@ -219,7 +219,7 @@ fn xsd_whitespace_does_not_treat_unicode_separators_as_whitespace() {
         r#"<GeoReferencing><CoordinateReferenceSystem><Type>ProjectedCRS</Type><Datum><Name>Datum</Name><Type><Name language="en">Registry</Name></Type></Datum></CoordinateReferenceSystem><ModelCoordinateSystem><IsProjected>true</IsProjected><FirstCoordinate>1.25</FirstCoordinate><SecondCoordinate>-2</SecondCoordinate><Height>3</Height><XAxisAbscissa>0</XAxisAbscissa><XAxisOrdinate>1</XAxisOrdinate><UnitScale>1</UnitScale><HorizontalScale>1</HorizontalScale></ModelCoordinateSystem></GeoReferencing>"#,
     );
     let double_source = document(
-        r#"<SpecificationPerObjectType dt:GUID="70000000-0000-0000-0000-000000000000" dateOfCreation="2026-08-26T00:00:00Z"><dt:Name/><ObjectType/><GeometricalInformation dt:GUID="80000000-0000-0000-0000-000000000000"><Detail><ShapeInfluence><ThresholdDimension><Threshold>1.5</Threshold><Unit/><Definition language="en">Tolerance</Definition></ThresholdDimension></ShapeInfluence></Detail></GeometricalInformation></SpecificationPerObjectType>"#,
+        r#"<SpecificationPerObjectType dt:GUID="70000000-0000-0000-0000-000000000000" dateOfCreation="2026-08-26T00:00:00Z"><dt:Name language="en"/><ObjectType/><GeometricalInformation dt:GUID="80000000-0000-0000-0000-000000000000"><Detail><ShapeInfluence><ThresholdDimension><Threshold>1.5</Threshold><Unit/><Definition language="en">Tolerance</Definition></ThresholdDimension></ShapeInfluence></Detail></GeometricalInformation></SpecificationPerObjectType>"#,
     );
 
     let xsd_whitespace = "\t\n\r ";
@@ -351,7 +351,7 @@ fn rejects_invalid_geometrical_enumeration() {
 fn imported_dt_complex_content_is_retained_without_false_complete_xsd_claims() {
     let source = document(
         r#"<SpecificationPerObjectType dt:GUID="70000000-0000-0000-0000-000000000000" dateOfCreation="2026-08-26T00:00:00Z">
-      <dt:Name/><ObjectType vendorAttribute="retained"><VendorSpecific><Nested /></VendorSpecific></ObjectType>
+      <dt:Name language="en"/><ObjectType vendorAttribute="retained"><VendorSpecific><Nested /></VendorSpecific></ObjectType>
       <AlphanumericalInformation dt:GUID="80000000-0000-0000-0000-000000000000"><Property><UnknownDtInternal /></Property></AlphanumericalInformation>
     </SpecificationPerObjectType>"#,
     );
@@ -375,11 +375,14 @@ fn inherited_concept_children_are_dt_qualified_ordered_and_retained() {
         .any(|diagnostic| diagnostic.code() == DiagnosticCode::MissingRequiredChild));
     let inherited = base.replace(
         "<ObjectType/>",
-        "<dt:Name/><dt:Definition/><dt:ReferenceDocumentRef/><dt:Description/><dt:Example/><dt:SimilarToRef/><dt:LanguageOfCreator/><dt:CountryOfOrigin/><dt:VisualRepresentation/><dt:MajorVersion/><dt:MinorVersion/><dt:Status/><dt:ReplacedObjectsRef/><dt:DeprecationExplanation/><dt:DictionaryRef/><ObjectType/>",
+        "<dt:Name language=\"en\"/><dt:Definition language=\"en\"/><dt:ReferenceDocumentRef/><dt:Description language=\"en\"/><dt:Example language=\"en\"/><dt:SimilarToRef/><dt:LanguageOfCreator/><dt:CountryOfOrigin/><dt:VisualRepresentation/><dt:MajorVersion/><dt:MinorVersion/><dt:Status/><dt:ReplacedObjectsRef/><dt:DeprecationExplanation/><dt:DictionaryRef/><ObjectType/>",
     );
     assert!(errors(&inherited).is_empty());
 
-    let invented = inherited.replace("<dt:Name/>", "<dt:Invented/><dt:Name/>");
+    let invented = inherited.replace(
+        "<dt:Name language=\"en\"/>",
+        "<dt:Invented/><dt:Name language=\"en\"/>",
+    );
     assert!(errors(&invented)
         .iter()
         .any(|diagnostic| diagnostic.code() == DiagnosticCode::UnknownElement));
@@ -389,7 +392,7 @@ fn inherited_concept_children_are_dt_qualified_ordered_and_retained() {
         .iter()
         .any(|diagnostic| diagnostic.code() == DiagnosticCode::UnknownElement));
 
-    let wrong_order = base.replace("<ObjectType/>", "<ObjectType/><dt:Name/>");
+    let wrong_order = base.replace("<ObjectType/>", "<ObjectType/><dt:Name language=\"en\"/>");
     let wrong_order_errors = errors(&wrong_order);
     assert!(
         wrong_order_errors
@@ -480,7 +483,7 @@ fn actor_sequence_and_cardinality_match_the_current_schema() {
 #[test]
 fn documentation_and_alphanumerical_sequences_match_the_current_schema() {
     let valid = document(
-        r#"<SpecificationPerObjectType dt:GUID="71000000-0000-0000-0000-000000000000" dateOfCreation="2026-08-26T00:00:00Z"><dt:Name/><ObjectType/><AlphanumericalInformation dt:GUID="72000000-0000-0000-0000-000000000000"><GroupsOfProperties/></AlphanumericalInformation><Documentation dt:GUID="73000000-0000-0000-0000-000000000000"><Document dt:GUID="74000000-0000-0000-0000-000000000000" type="manual" form="digital" content="synthetic"><Name language="en">Manual</Name><ReferenceDocument/><Description language="en">Description</Description><Format><FormatName language="en">PDF</FormatName><FormatVersion language="en">2.0</FormatVersion></Format></Document></Documentation></SpecificationPerObjectType>"#,
+        r#"<SpecificationPerObjectType dt:GUID="71000000-0000-0000-0000-000000000000" dateOfCreation="2026-08-26T00:00:00Z"><dt:Name language="en"/><ObjectType/><AlphanumericalInformation dt:GUID="72000000-0000-0000-0000-000000000000"><GroupsOfProperties/></AlphanumericalInformation><Documentation dt:GUID="73000000-0000-0000-0000-000000000000"><Document dt:GUID="74000000-0000-0000-0000-000000000000" type="manual" form="digital" content="synthetic"><Name language="en">Manual</Name><ReferenceDocument/><Description language="en">Description</Description><Format><FormatName language="en">PDF</FormatName><FormatVersion language="en">2.0</FormatVersion></Format></Document></Documentation></SpecificationPerObjectType>"#,
     );
     assert!(errors(&valid).is_empty(), "{:?}", errors(&valid));
     let empty_groups = valid.clone();
@@ -507,11 +510,11 @@ fn documentation_and_alphanumerical_sequences_match_the_current_schema() {
 #[test]
 fn geometrical_sequence_represents_all_current_owned_branches() {
     let xml = document(
-        r#"<SpecificationPerObjectType dt:GUID="75000000-0000-0000-0000-000000000000" dateOfCreation="2026-08-26T00:00:00Z"><dt:Name/><ObjectType/><GeometricalInformation dt:GUID="76000000-0000-0000-0000-000000000000" placeholder="false"><Detail><Dictionary/><ShapeAssembly>MultipleObjects</ShapeAssembly><ShapeRepresentation>OuterShellAsSeparateShapes</ShapeRepresentation><ShapeInfluence><InsideGeometry>SeparateShapes</InsideGeometry><Connections>NoConnections</Connections><Openings>NoOpenings</Openings><OperatingAndClearanceZones>NoZones</OperatingAndClearanceZones><Features>NoFeatures</Features><ThresholdDimension><Threshold>0.01</Threshold><Unit/><Definition language="en">Tolerance</Definition></ThresholdDimension></ShapeInfluence></Detail><Dimensionality>3D</Dimensionality><Appearance>RealisticAppearance</Appearance><ParametricBehaviour>Requested</ParametricBehaviour><Location><RelativeOrAbsolute>Absolute</RelativeOrAbsolute><ReferenceObject>Site</ReferenceObject></Location></GeometricalInformation></SpecificationPerObjectType>"#,
+        r#"<SpecificationPerObjectType dt:GUID="75000000-0000-0000-0000-000000000000" dateOfCreation="2026-08-26T00:00:00Z"><dt:Name language="en"/><ObjectType/><GeometricalInformation dt:GUID="76000000-0000-0000-0000-000000000000" placeholder="false"><Detail><Dictionary/><ShapeAssembly>MultipleObjects</ShapeAssembly><ShapeRepresentation>OuterShellAsSeparateShapes</ShapeRepresentation><ShapeInfluence><InsideGeometry>SeparateShapes</InsideGeometry><Connections>NoConnections</Connections><Openings>NoOpenings</Openings><OperatingAndClearanceZones>NoZones</OperatingAndClearanceZones><Features>NoFeatures</Features><ThresholdDimension><Threshold>0.01</Threshold><Unit/><Definition language="en">Tolerance</Definition></ThresholdDimension></ShapeInfluence></Detail><Dimensionality>3D</Dimensionality><Appearance>RealisticAppearance</Appearance><ParametricBehaviour>Requested</ParametricBehaviour><Location><RelativeOrAbsolute>Absolute</RelativeOrAbsolute><ReferenceObject>Site</ReferenceObject></Location></GeometricalInformation></SpecificationPerObjectType>"#,
     );
     assert!(errors(&xml).is_empty(), "{:?}", errors(&xml));
     let wrong_order = document(
-        r#"<SpecificationPerObjectType dt:GUID="77000000-0000-0000-0000-000000000000" dateOfCreation="2026-08-26T00:00:00Z"><dt:Name/><ObjectType/><GeometricalInformation dt:GUID="78000000-0000-0000-0000-000000000000"><Location><RelativeOrAbsolute>NotDefined</RelativeOrAbsolute></Location><Detail/></GeometricalInformation></SpecificationPerObjectType>"#,
+        r#"<SpecificationPerObjectType dt:GUID="77000000-0000-0000-0000-000000000000" dateOfCreation="2026-08-26T00:00:00Z"><dt:Name language="en"/><ObjectType/><GeometricalInformation dt:GUID="78000000-0000-0000-0000-000000000000"><Location><RelativeOrAbsolute>NotDefined</RelativeOrAbsolute></Location><Detail/></GeometricalInformation></SpecificationPerObjectType>"#,
     );
     assert!(errors(&wrong_order)
         .iter()

@@ -15,6 +15,31 @@ and this project follows [Semantic Versioning](https://semver.org/).
   `openbim-loin` and `loin` is MIT. `LICENSING.md` records the version
   boundaries. Resolves #11.
 
+### Fixed
+
+- ISO 23387 multilingual text (`dt:Name`, `dt:Definition`, `dt:Description`,
+  `dt:Example`) now has its required `language` attribute validated.
+  `validate_dt_element` was only reachable for a `dt`-namespaced root, which
+  the root check already rejects, so the attribute was never inspected in
+  either direction. The check moved to `validate_imported_dt_subtree`, which
+  is on the live path. Resolves #2.
+- `ChildOutOfOrder` now reports the offending child's path instead of the
+  parent's, and `child_path` is computed once per child so the trailing index
+  means the same thing in every diagnostic. Resolves #6.
+
+### Added
+
+- `Display` and `std::error::Error` for `Diagnostic`, and `Display` for
+  `EmailAddress`, so consumers no longer hand-roll formatting. Resolves #7.
+
+### Removed
+
+- `DiagnosticCode::InvalidInteger`, which was never constructed. The ISO 7817-3
+  XSD declares no integer-typed attribute or element (only `xs:boolean`,
+  `xs:dateTime`, `xs:decimal`, `xs:double`, `xs:language` and `xs:string`), so
+  the variant was unreachable by construction and forced consumers matching
+  exhaustively to carry a dead branch. Resolves #7.
+
 ### Added
 
 - `Purpose::names`, `definitions`, `descriptions`, `reference_documents`,

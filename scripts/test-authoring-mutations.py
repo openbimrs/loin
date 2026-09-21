@@ -15,6 +15,26 @@ SRC = ROOT / "openbim-loin" / "src"
 
 MUTATIONS = [
     (
+        "issue2-dt-language-unchecked",
+        "validation.rs",
+        "    validate_dt_multilingual_text(element, path, diagnostics);\n",
+        "",
+        "dt_language",
+        "issue2_dt_multilingual_text_requires_language",
+    ),
+    (
+        "issue6-parent-path-for-out-of-order",
+        "validation.rs",
+        """                DiagnosticCode::ChildOutOfOrder,
+                &child_path,
+                format!("{} occurs outside its XSD sequence position", child.qname()),""",
+        """                DiagnosticCode::ChildOutOfOrder,
+                path,
+                format!("{} occurs outside its XSD sequence position", child.qname()),""",
+        "dt_language",
+        "issue6_child_out_of_order_reports_the_child_path",
+    ),
+    (
         "issue9-threshold-dimension-first",
         "model.rs",
         """    pub features: Option<Features>,

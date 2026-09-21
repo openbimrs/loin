@@ -39,6 +39,12 @@ impl EmailAddress {
     }
 }
 
+impl fmt::Display for EmailAddress {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
 pub(crate) fn matches_actor_email_pattern(value: &str) -> bool {
     let characters: Vec<char> = value.chars().collect();
     characters.iter().enumerate().any(|(at, character)| {

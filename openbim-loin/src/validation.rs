@@ -6,6 +6,7 @@
 //! `xs:dateTime`, and `xs:decimal` to `openbim-dt`. Imported ISO 23387 complex-type
 //! internals are retained but are outside this validator's complete coverage.
 
+use std::fmt;
 use std::str::FromStr;
 
 use crate::{dt, LoinDocument, XmlElement, XmlNode};
@@ -38,7 +39,6 @@ pub enum DiagnosticCode {
 
     InvalidDateTime,
     InvalidBoolean,
-    InvalidInteger,
     InvalidDecimal,
     InvalidDouble,
     InvalidEnumeration,
@@ -77,6 +77,19 @@ impl Diagnostic {
         &self.message
     }
 }
+
+impl fmt::Display for Diagnostic {
+    /// Renders as `severity code path: message`.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{:?} {:?} {}: {}",
+            self.severity, self.code, self.path, self.message
+        )
+    }
+}
+
+impl std::error::Error for Diagnostic {}
 
 #[derive(Clone, Copy)]
 struct ChildRule {
@@ -528,9 +541,53 @@ fn validate_imported_dt_subtree(
             );
         }
     }
+    validate_dt_multilingual_text(element, path, diagnostics);
     for (index, child) in element.children().enumerate() {
         let child_path = format!("{path}/{}[{}]", child.local_name(), index + 1);
         validate_imported_dt_subtree(child, &child_path, diagnostics);
+    }
+}
+
+/// Enforces the required `language` attribute on ISO 23387 multilingual text.
+///
+/// `MultiLanguageTextType` declares `language` as `use="required"` with type
+/// `xs:language`, so an absent or malformed value is an error.
+fn validate_dt_multilingual_text(
+    element: &XmlElement,
+    path: &str,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    if !matches!(
+        element.local_name(),
+        "Name" | "Definition" | "Description" | "Example"
+    ) {
+        return;
+    }
+    if element.namespace_uri() != Some(dt::NAMESPACE) {
+        return;
+    }
+    let language = element
+        .attributes()
+        .iter()
+        .find(|a| a.namespace_uri().is_none() && a.local_name() == "language");
+    let Some(language) = language else {
+        push(
+            diagnostics,
+            Severity::Error,
+            DiagnosticCode::MissingLanguage,
+            path,
+            "ISO 23387 multilingual text requires a language attribute",
+        );
+        return;
+    };
+    if dt::Language::from_str(language.value()).is_err() {
+        push(
+            diagnostics,
+            Severity::Error,
+            DiagnosticCode::InvalidLanguage,
+            path,
+            "invalid XML Schema language in imported ISO 23387 content",
+        );
     }
 }
 
@@ -613,13 +670,14 @@ fn validate_children(
                 diagnostics,
                 Severity::Error,
                 DiagnosticCode::ChildOutOfOrder,
-                path,
+                &child_path,
                 format!("{} occurs outside its XSD sequence position", child.qname()),
             );
         }
         last_rule = last_rule.max(index);
         seen_known = true;
-        let child_path = format!("{path}/{}[{}]", child.local_name(), counts[index]);
+        // child_path is computed once per child, above, using the
+        // document position so every diagnostic on this child agrees.
         visit(child, Some(element.local_name()), &child_path, diagnostics);
     }
 
