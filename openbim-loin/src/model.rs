@@ -112,6 +112,86 @@ impl Purpose {
     pub fn items(&self) -> &[PurposeItem] {
         &self.items
     }
+    /// Every `Definition` branch, in document order.
+    #[must_use]
+    pub fn definitions(&self) -> Vec<&MultiLanguageText> {
+        self.items
+            .iter()
+            .filter_map(|item| match item {
+                PurposeItem::Definition(value) => Some(value),
+                _ => None,
+            })
+            .collect()
+    }
+    /// Every `Description` branch, in document order.
+    #[must_use]
+    pub fn purpose_descriptions(&self) -> Vec<&MultiLanguageText> {
+        self.items
+            .iter()
+            .filter_map(|item| match item {
+                PurposeItem::Description(value) => Some(value),
+                _ => None,
+            })
+            .collect()
+    }
+    /// Every `ReferenceDocument` branch, in document order.
+    #[must_use]
+    pub fn reference_documents(&self) -> Vec<&Reference> {
+        self.items
+            .iter()
+            .filter_map(|item| match item {
+                PurposeItem::ReferenceDocument(value) => Some(value),
+                _ => None,
+            })
+            .collect()
+    }
+    /// Every `Language` branch, in document order.
+    #[must_use]
+    pub fn languages(&self) -> Vec<&Language> {
+        self.items
+            .iter()
+            .filter_map(|item| match item {
+                PurposeItem::Language(value) => Some(value),
+                _ => None,
+            })
+            .collect()
+    }
+    /// Every `Region` branch, in document order.
+    #[must_use]
+    pub fn regions(&self) -> Vec<&String> {
+        self.items
+            .iter()
+            .filter_map(|item| match item {
+                PurposeItem::Region(value) => Some(value),
+                _ => None,
+            })
+            .collect()
+    }
+    /// Every `DictionaryRef` branch, in document order.
+    #[must_use]
+    pub fn dictionary_refs(&self) -> Vec<&Reference> {
+        self.items
+            .iter()
+            .filter_map(|item| match item {
+                PurposeItem::DictionaryRef(value) => Some(value),
+                _ => None,
+            })
+            .collect()
+    }
+    /// Every `Name` branch, in document order.
+    ///
+    /// The XSD choice is `maxOccurs="unbounded"`, so any branch may repeat;
+    /// ISO `split_example.xml` carries two `Name` branches.
+    #[must_use]
+    pub fn names(&self) -> Vec<&MultiLanguageText> {
+        self.items
+            .iter()
+            .filter_map(|item| match item {
+                PurposeItem::Name(value) => Some(value),
+                _ => None,
+            })
+            .collect()
+    }
     pub fn add_item(&mut self, value: PurposeItem) {
         self.items.push(value);
     }
@@ -955,26 +1035,29 @@ impl ThresholdDimension {
 }
 
 /// Optional `ShapeInfluenceType` branches.
+///
+/// Field order matches the XSD `xs:sequence`: a serializer walking these
+/// fields in declaration order emits valid document order.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ShapeInfluence {
-    pub threshold_dimension: Option<ThresholdDimension>,
     pub inside_geometry: Option<InsideGeometry>,
     pub connections: Option<Connections>,
     pub openings: Option<Openings>,
     pub operating_and_clearance_zones: Option<OperatingAndClearanceZones>,
     pub features: Option<Features>,
+    pub threshold_dimension: Option<ThresholdDimension>,
 }
 
 impl ShapeInfluence {
     #[must_use]
     pub const fn new() -> Self {
         Self {
-            threshold_dimension: None,
             inside_geometry: None,
             connections: None,
             openings: None,
             operating_and_clearance_zones: None,
             features: None,
+            threshold_dimension: None,
         }
     }
 }

@@ -9,6 +9,21 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `Purpose::names`, `definitions`, `descriptions`, `reference_documents`,
+  `regions`, and `dictionary_refs`, which expose every branch of the repeating
+  `PurposeType` choice. The XSD declares the choice `maxOccurs="unbounded"`,
+  so branches may legitimately repeat and the singular accessors return only
+  the first occurrence.
+- `tests/schema_conformance.rs`, pinning grammar facts read from the official
+  ISO 7817-3 Annex B XSD.
+
+### Fixed
+
+- `ShapeInfluence` field order now matches the XSD `xs:sequence`
+  (`ThresholdDimension` last), so a serializer walking fields in declaration
+  order emits valid document order.
+
+
 - `LoinDocument::from_model` converts a `LevelOfInformationNeed` into a
   document, so LOIN files can be authored and not only parsed. Output is
   written in schema sequence order and revalidates after a reparse.

@@ -15,6 +15,16 @@ SRC = ROOT / "openbim-loin" / "src"
 
 MUTATIONS = [
     (
+        "issue9-threshold-dimension-first",
+        "model.rs",
+        """    pub features: Option<Features>,
+    pub threshold_dimension: Option<ThresholdDimension>,""",
+        """    pub threshold_dimension: Option<ThresholdDimension>,
+    pub features: Option<Features>,""",
+        "schema_conformance",
+        "shape_influence_field_order_matches_xsd_sequence",
+    ),
+    (
         "issue5-append-instead-of-replace",
         "model.rs",
         """        match self.items.iter().position(&matches) {
@@ -27,6 +37,7 @@ MUTATIONS = [
         """        self.items.retain(|item| !matches(item));
         match None::<usize> {
             Some(_index) => unreachable!(),""",
+        "authoring",
         "purpose_setters_replace_in_place_without_reordering",
     ),
     (
@@ -37,6 +48,7 @@ MUTATIONS = [
                 NAMESPACE_2024,
             ))""",
         """            .with_attribute(XmlAttribute::namespace_declaration(None, NAMESPACE_2024))""",
+        "authoring",
         "authored_output_reparses_and_still_validates",
     ),
     (
@@ -56,6 +68,7 @@ MUTATIONS = [
             prefix: None,
             local_name,
             namespace_uri: Some(Arc::from(NAMESPACE_2024)),""",
+        "authoring",
         "authored_document_serializes_and_validates",
     ),
     (
@@ -65,23 +78,31 @@ MUTATIONS = [
     Err(unwritable("ObjectType"))''',
         '''    let _ = value;
     Ok(XmlElement::new("SpecificationPerObjectType"))''',
+        "authoring",
         "dt_owned_content_is_refused_by_name",
     ),
 ]
 
 
-def run(workdir: pathlib.Path, test: str) -> int:
-    return subprocess.run(
-        ["cargo", "test", "--offline", "-p", "openbim-loin", "--test", "authoring", test],
+def run(workdir: pathlib.Path, suite: str, test: str) -> int:
+    # A wrong --test target makes cargo exit 0 with "0 tests run", which
+    # would silently mark every mutation as surviving. Assert the test ran.
+    result = subprocess.run(
+        ["cargo", "test", "--offline", "-p", "openbim-loin", "--test", suite, test],
         cwd=workdir,
         capture_output=True,
         text=True,
-    ).returncode
+    )
+    if "running 1 test" not in result.stdout:
+        raise SystemExit(
+            f"harness bug: {suite}::{test} did not run\n{result.stdout}"
+        )
+    return result.returncode
 
 
 def main() -> int:
     leaked = 0
-    for name, filename, old, new, test in MUTATIONS:
+    for name, filename, old, new, suite, test in MUTATIONS:
         with tempfile.TemporaryDirectory(prefix="loin-mutate-") as tmp:
             sandbox = pathlib.Path(tmp) / "repo"
             # Copy a disposable sandbox; never mutate the real tree.
@@ -97,7 +118,7 @@ def main() -> int:
                 leaked += 1
                 continue
             target.write_text(text.replace(old, new), encoding="utf-8")
-            if run(sandbox, test) == 0:
+            if run(sandbox, suite, test) == 0:
                 print(f"SURVIVED {name}: {test} still passes")
                 leaked += 1
             else:
