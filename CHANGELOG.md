@@ -7,13 +7,7 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Changed
-
-- Relicensed repository-authored work from `AGPL-3.0-or-later` back to `MIT`.
-  No version was ever published under the AGPL — the relicense landed after
-  `0.2.0` and was reverted before any release, so every published version of
-  `openbim-loin` and `loin` is MIT. `LICENSING.md` records the version
-  boundaries. Resolves #11.
+## [0.3.1] - 2026-09-21
 
 ### Fixed
 
@@ -39,6 +33,16 @@ and this project follows [Semantic Versioning](https://semver.org/).
   `xs:dateTime`, `xs:decimal`, `xs:double`, `xs:language` and `xs:string`), so
   the variant was unreachable by construction and forced consumers matching
   exhaustively to carry a dead branch. Resolves #7.
+
+## [0.3.0] - 2026-09-21
+
+### Changed
+
+- Relicensed repository-authored work from `AGPL-3.0-or-later` back to `MIT`.
+  No version was ever published under the AGPL — the relicense landed after
+  `0.2.0` and was reverted before any release, so every published version of
+  `openbim-loin` and `loin` is MIT. `LICENSING.md` records the version
+  boundaries. Resolves #11.
 
 ### Added
 

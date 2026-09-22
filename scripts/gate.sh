@@ -51,8 +51,8 @@ metadata = json.loads(subprocess.run(
 packages = {package["name"]: package for package in metadata["packages"]}
 canonical = packages["openbim-loin"]
 alias = packages["loin"]
-assert canonical["version"] == "0.3.0", canonical["version"]
-assert alias["version"] == "0.3.0", alias["version"]
+version = canonical["version"]
+assert alias["version"] == version, (alias["version"], version)
 deps = {dependency["name"]: dependency for dependency in canonical["dependencies"]}
 assert set(deps) == {"openbim-dt", "quick-xml", "roxmltree"}, deps
 assert deps["openbim-dt"]["req"] == "^0.2.0", deps["openbim-dt"]
@@ -61,10 +61,10 @@ assert deps["quick-xml"]["req"] == "^0.41.0", deps["quick-xml"]
 assert deps["roxmltree"]["req"] == "^0.21.1", deps["roxmltree"]
 alias_dep = alias["dependencies"]
 assert len(alias_dep) == 1 and alias_dep[0]["name"] == "openbim-loin", alias_dep
-assert alias_dep[0]["req"] == "=0.3.0", alias_dep[0]
+assert alias_dep[0]["req"] == f"={version}", alias_dep[0]
 PY
 cargo "${cargo_args[@]}" package -p openbim-loin --locked --allow-dirty
-printf 'alias package verification deferred until openbim-loin 0.3.0 is registry-visible\n'
+printf 'alias package verification deferred until the canonical crate is registry-visible\\n'
 ./scripts/test-dt-boundary.sh
 ./scripts/test-schema-shape.sh
 python3 scripts/test-xml-capability.py
