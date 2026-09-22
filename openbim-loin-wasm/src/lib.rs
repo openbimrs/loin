@@ -6,7 +6,8 @@
 //! on `code`, `severity` and `kind` instead of parsing message text.
 
 use openbim_loin::{
-    Diagnostic, DiagnosticCode, LoinDocument, OutputNamespace, ParseError, ParseErrorKind, Severity,
+    Diagnostic, DiagnosticCode, LoinDocument, MigrationError, NamespaceVersion, OutputNamespace,
+    ParseError, ParseErrorKind, Severity,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -129,6 +130,66 @@ fn write_error(message: &str) -> JsValue {
     js.into()
 }
 
+/// Stable JS-facing spelling of a namespace version. See [`code_str`].
+const fn version_str(version: NamespaceVersion) -> &'static str {
+    match version {
+        NamespaceVersion::Draft2022 => "Draft2022",
+        NamespaceVersion::Draft2024 => "Draft2024",
+    }
+}
+
+/// Parses the JS-facing namespace-version spelling.
+///
+/// Returns `None` for anything unrecognised so the caller can throw rather
+/// than silently migrating to a default.
+fn parse_version(value: &str) -> Option<NamespaceVersion> {
+    match value {
+        "Draft2022" => Some(NamespaceVersion::Draft2022),
+        "Draft2024" => Some(NamespaceVersion::Draft2024),
+        _ => None,
+    }
+}
+
+/// Builds a JS `Error` for a refused migration.
+///
+/// `element` and `local_name` are attached as own properties for the same
+/// reason parse errors carry `kind` and `position`: the caller should be able
+/// to point at the offending attribute without parsing prose.
+fn migration_error(error: &MigrationError) -> JsValue {
+    let js = js_sys::Error::new(&error.to_string());
+    js.set_name("LoinMigrationError");
+    let value: JsValue = js.into();
+    let _ = js_sys::Reflect::set(
+        &value,
+        &JsValue::from_str("element"),
+        &JsValue::from_str(error.element()),
+    );
+    let _ = js_sys::Reflect::set(
+        &value,
+        &JsValue::from_str("localName"),
+        &JsValue::from_str(error.local_name()),
+    );
+    value
+}
+
+/// Counts describing what a migration changed.
+#[derive(Serialize)]
+pub struct JsMigrationReport {
+    pub source: String,
+    pub target: String,
+    #[serde(rename = "changedNames")]
+    pub changed_names: usize,
+    #[serde(rename = "changedDeclarations")]
+    pub changed_declarations: usize,
+}
+
+/// Migrated document plus the report describing what changed.
+#[derive(Serialize)]
+pub struct JsMigration {
+    pub xml: String,
+    pub report: JsMigrationReport,
+}
+
 // Hand-written declarations: wasm-bindgen types a `JsValue` return as `any`,
 // which would leave the whole point of structured diagnostics untyped.
 #[wasm_bindgen(typescript_custom_section)]
@@ -160,6 +221,46 @@ export interface LoinParseError extends Error {
  * @throws {LoinParseError} when the input is not a well-formed LOIN document.
  */
 export function validate(xml: string): Diagnostic[];
+
+/** A LOIN namespace version. */
+export type NamespaceVersion = "Draft2022" | "Draft2024";
+
+/** Counts describing what a migration changed. */
+export interface MigrationReport {
+    source: NamespaceVersion;
+    target: NamespaceVersion;
+    /** Element and attribute names moved to the target namespace. */
+    changedNames: number;
+    /** Namespace declarations rewritten. */
+    changedDeclarations: number;
+}
+
+/** Migrated document plus a report of what changed. */
+export interface Migration {
+    xml: string;
+    report: MigrationReport;
+}
+
+/** Error thrown when a migration would collide two attribute names. */
+export interface LoinMigrationError extends Error {
+    name: "LoinMigrationError";
+    /** Element carrying the colliding attribute. */
+    element: string;
+    /** Local name that would be duplicated. */
+    localName: string;
+}
+
+/**
+ * Migrates a document to a target LOIN namespace version.
+ *
+ * Migrating to the version already in use is a no-op that still returns a
+ * report, with both counts zero.
+ *
+ * @throws {LoinParseError} when the input is not a well-formed LOIN document.
+ * @throws {LoinMigrationError} when the migration would collide attributes.
+ * @throws {TypeError} when `target` is not a known namespace version.
+ */
+export function migrate(xml: string, target: NamespaceVersion): Migration;
 "#;
 
 /// Validates a LOIN document, returning an array of diagnostics.
@@ -187,4 +288,37 @@ pub fn rewrite(xml: &str) -> Result<String, JsValue> {
 #[wasm_bindgen(js_name = isWellFormed)]
 pub fn is_well_formed(xml: &str) -> bool {
     LoinDocument::parse(xml).is_ok()
+}
+
+/// Migrates a document to a target LOIN namespace version.
+///
+/// Returns the migrated XML together with a report of what changed. Throws a
+/// JS `LoinMigrationError` when the migration would make two attributes share
+/// one expanded name, and a `TypeError` for an unknown target version rather
+/// than quietly falling back to a default.
+#[wasm_bindgen(skip_typescript)]
+pub fn migrate(xml: &str, target: &str) -> Result<JsValue, JsValue> {
+    let target = parse_version(target).ok_or_else(|| {
+        JsValue::from(js_sys::TypeError::new(
+            "unknown namespace version: expected \"Draft2022\" or \"Draft2024\"",
+        ))
+    })?;
+    let doc = LoinDocument::parse(xml).map_err(|e| parse_error(&e))?;
+    let (migrated, report) = doc.migrated(target).map_err(|e| migration_error(&e))?;
+    // `migrated()` already advances `current_namespace`, so `Preserve` would
+    // serialise identically. Naming the target is equivalent but states the
+    // intent, and keeps this correct if that internal behaviour ever changes.
+    let out = migrated
+        .to_xml_string(OutputNamespace::Version(target))
+        .map_err(|e| write_error(&e.to_string()))?;
+    let value = JsMigration {
+        xml: out,
+        report: JsMigrationReport {
+            source: version_str(report.source()).to_owned(),
+            target: version_str(report.target()).to_owned(),
+            changed_names: report.changed_names(),
+            changed_declarations: report.changed_declarations(),
+        },
+    };
+    serde_wasm_bindgen::to_value(&value).map_err(JsValue::from)
 }

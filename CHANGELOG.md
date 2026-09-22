@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-09-22
+
 ### Changed
 
 - `openbim-loin-wasm` errors are now machine-readable: a parse failure
@@ -22,14 +24,18 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `openbim-loin-wasm` exposes namespace migration via `migrate(xml,
+  target)`, returning the migrated document together with a report of
+  changed names and declarations. The capability existed in the core crate
+  but was unreachable from JS, which only ever wrote the observed
+  namespace. An unknown target throws `TypeError` rather than defaulting;
+  a colliding migration throws `LoinMigrationError` carrying `element`
+  and `localName`.
 - `console_error_panic_hook` in `openbim-loin-wasm`, so a Rust panic
   reaches the JS console with a stack trace.
 - `openbim-loin-wasm/npm/package.json`, an npm manifest for publishing
   the generated bindings as `@openbimrs/loin`. The gate asserts it stays
   in step with the crate version and lists only emitted files.
-
-### Added
-
 - `openbim-loin-wasm`, browser/Node bindings exposing `validate`,
   `rewrite` and `isWellFormed`. Diagnostics cross the JS boundary as
   structured objects, so callers branch on `code` instead of parsing
@@ -213,6 +219,10 @@ and this project follows [Semantic Versioning](https://semver.org/).
 - Added known-namespace recognition.
 - Established `loin` as a pure re-export of the canonical package.
 
-[Unreleased]: https://github.com/openbimrs/loin/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/openbimrs/loin/compare/v0.3.3...HEAD
+[0.3.3]: https://github.com/openbimrs/loin/compare/v0.3.2...v0.3.3
+[0.3.2]: https://github.com/openbimrs/loin/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/openbimrs/loin/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/openbimrs/loin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/openbimrs/loin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://crates.io/crates/openbim-loin/0.1.0

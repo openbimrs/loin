@@ -17,6 +17,7 @@ a browser. The core crate stays dependency-light; this crate pays for JS.
 ```ts
 validate(xml: string): Diagnostic[]   // throws LoinParseError
 rewrite(xml: string): string          // throws LoinParseError | LoinWriteError
+migrate(xml: string, target: NamespaceVersion): Migration
 isWellFormed(xml: string): boolean
 ```
 
@@ -34,6 +35,22 @@ try { validate(xml); } catch (e) {
 `code`, `severity` and `kind` strings are an explicit, exhaustive mapping
 in `src/lib.rs`, not derived from Rust's `Debug`. A variant rename upstream
 breaks this crate's build rather than silently changing the JS contract.
+
+### Namespace migration
+
+`migrate` moves a document between LOIN namespace versions (`Draft2022`,
+`Draft2024`) and reports what changed:
+
+```js
+const { xml, report } = migrate(input, "Draft2024");
+// report: { source, target, changedNames, changedDeclarations }
+```
+
+Migrating to the version already in use is a no-op that still returns a
+report with both counts zero. An unknown target throws `TypeError` rather
+than falling back to a default. When a migration would make two attributes
+share one expanded name it throws `LoinMigrationError`, carrying `element`
+and `localName` so the caller can point at the collision.
 
 ## Build
 

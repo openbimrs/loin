@@ -65,3 +65,28 @@ assert.deepStrictEqual(
 );
 
 console.log("structured errors OK:", caught.kind, "@", caught.position);
+
+// 6. Namespace migration: Draft2024 -> Draft2022 must rewrite names and
+//    survive serialisation, so the result reparses in the NEW namespace.
+const OLD_NS = "https://iso.org/2022/LOIN";
+const mig = m.migrate(good, "Draft2022");
+assert.strictEqual(mig.report.source, "Draft2024", JSON.stringify(mig.report));
+assert.strictEqual(mig.report.target, "Draft2022");
+assert(mig.report.changedNames > 0, "migration changed element names");
+assert(mig.xml.includes(OLD_NS), "output declares the target namespace");
+assert(!mig.xml.includes(LOIN), "output drops the source namespace");
+assert(m.isWellFormed(mig.xml), "migrated output is still a LOIN document");
+
+// Migrating to the version already in use is a no-op, but still reports.
+const same = m.migrate(good, "Draft2024");
+assert.strictEqual(same.report.changedNames, 0, "no-op changes nothing");
+assert.strictEqual(same.report.changedDeclarations, 0);
+
+// An unknown target must throw TypeError, never silently default.
+assert.throws(() => m.migrate(good, "Draft1999"), TypeError);
+
+console.log(
+  "migration OK:", mig.report.source, "->", mig.report.target,
+  "names=" + mig.report.changedNames,
+  "decls=" + mig.report.changedDeclarations
+);
