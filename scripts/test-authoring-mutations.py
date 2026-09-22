@@ -15,6 +15,14 @@ SRC = ROOT / "openbim-loin" / "src"
 
 MUTATIONS = [
     (
+        "issue4-leading-at-accepted",
+        "model.rs",
+        "    if at == 0 {\n        return false;\n    }",
+        "    if false {\n        return false;\n    }",
+        "email_pattern",
+        "leading_at_is_rejected",
+    ),
+    (
         "issue5-setter-drops-duplicates",
         "model.rs",
         """        Ok(())

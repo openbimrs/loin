@@ -45,17 +45,35 @@ impl fmt::Display for EmailAddress {
     }
 }
 
+/// Implements the ISO 7817-3 `EMailAddressType` pattern.
+///
+/// The schema facet is `[^@]+@[^\.]+\..+`, which is implicitly anchored to the
+/// whole value. Read literally that means:
+///
+/// * at least one non-`@` character before the first `@`,
+/// * at least one character that is not `.` immediately after it,
+/// * then a `.` with at least one character following.
+///
+/// Note the pattern permits later `@` characters, because `.+` matches them:
+/// `a@b@c.de` is schema-valid. Only a value whose first `@` has nothing
+/// before it, or which lacks the trailing dotted part, is rejected.
 pub(crate) fn matches_actor_email_pattern(value: &str) -> bool {
     let characters: Vec<char> = value.chars().collect();
-    characters.iter().enumerate().any(|(at, character)| {
-        *character == '@'
-            && at > 0
-            && characters[at - 1] != '@'
-            && characters[at + 1..]
-                .iter()
-                .position(|candidate| *candidate == '.')
-                .is_some_and(|dot| dot > 0 && at + dot + 2 < characters.len())
-    })
+    // `[^@]+` is greedy but cannot cross an `@`, so the match is anchored on
+    // the FIRST `@`. Scanning for any acceptable `@` accepted a leading one.
+    let Some(at) = characters.iter().position(|character| *character == '@') else {
+        return false;
+    };
+    if at == 0 {
+        return false;
+    }
+    // `[^\.]+` requires at least one non-dot character after the `@`.
+    let rest = &characters[at + 1..];
+    let Some(dot) = rest.iter().position(|character| *character == '.') else {
+        return false;
+    };
+    // `.+` requires at least one character after that dot.
+    dot > 0 && dot + 1 < rest.len()
 }
 
 /// One ordered branch of the repeating `PurposeType` choice.

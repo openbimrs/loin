@@ -7,6 +7,20 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `EmailAddress` no longer accepts a leading `@`. The check scanned for any
+  acceptable `@` in the value, so `@a@b.c` passed on the strength of a later
+  one. It now anchors on the first `@`, matching the ISO 7817-3
+  `EMailAddressType` facet `[^@]+@[^\.]+\..+`. Resolves #4.
+
+  Note the facet permits further `@` characters after the first, because the
+  trailing `.+` matches them: `a@b@c.de` is schema-valid and stays accepted.
+  Rejecting it, as the report suggested, would deviate from the published
+  schema. `tests/email_pattern.rs` differentially checks the implementation
+  against a faithful reading of the facet over every string up to length six
+  drawn from `a`, `b`, `@` and `.`, and requires exact agreement.
+
 ## [0.3.2] - 2026-09-21
 
 ### Fixed
