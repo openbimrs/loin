@@ -14,12 +14,26 @@ a browser. The core crate stays dependency-light; this crate pays for JS.
 
 ## API
 
-- `validate(xml)` -> array of `{severity, code, path, message}`
-- `rewrite(xml)` -> string, re-serialised preserving the observed namespace
-- `isWellFormed(xml)` -> boolean
+```ts
+validate(xml: string): Diagnostic[]   // throws LoinParseError
+rewrite(xml: string): string          // throws LoinParseError | LoinWriteError
+isWellFormed(xml: string): boolean
+```
 
-Parse failures throw a JS `Error`. Diagnostics are structured objects, so
-callers branch on `code` rather than parsing message text.
+Everything crossing the boundary is machine-readable. A `Diagnostic` is
+`{severity, code, path, message}`; a `LoinParseError` additionally carries
+`kind` and `position` as real properties, so an editor can place a marker
+at the byte offset without regexing the message.
+
+```js
+try { validate(xml); } catch (e) {
+  if (e.name === "LoinParseError") marker(e.position, e.kind);
+}
+```
+
+`code`, `severity` and `kind` strings are an explicit, exhaustive mapping
+in `src/lib.rs`, not derived from Rust's `Debug`. A variant rename upstream
+breaks this crate's build rather than silently changing the JS contract.
 
 ## Build
 
@@ -30,6 +44,9 @@ wasm-bindgen --target nodejs --out-dir pkg \
 ```
 
 `--target web` or `bundler` work equally; `nodejs` is what the gate uses.
+
+`npm/package.json` is the npm manifest: copy it next to the generated
+files and `npm pack` to produce a publishable `@openbimrs/loin` tarball.
 
 ## Verification
 

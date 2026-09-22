@@ -6,6 +6,9 @@ rust-version = "1.85"
 license = "MIT"
 authors = ["point-grey"]
 repository = "https://github.com/openbimrs/loin"
+homepage = "https://openbimrs.github.io/loin/"
+documentation = "https://docs.rs/openbim-loin-wasm"
+readme = "README.md"
 description = "Browser and WASM bindings for openbim-loin."
 keywords = ["bim", "openbim", "loin", "wasm"]
 categories = ["wasm"]
@@ -18,9 +21,8 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 openbim-loin = { path = "../openbim-loin", version = "=0.3.2" }
-wasm-bindgen = "0.2"
+console_error_panic_hook = "0.1"
+js-sys = "0.3"
 serde = { version = "1", features = ["derive"] }
 serde-wasm-bindgen = "0.6"
-
-
-js-sys = "0.3"
+wasm-bindgen = "0.2"

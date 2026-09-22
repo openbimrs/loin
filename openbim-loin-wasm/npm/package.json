@@ -1,0 +1,28 @@
+{
+  "name": "@openbimrs/loin",
+  "version": "0.3.2",
+  "description": "Parse, validate and rewrite ISO 7817-3 LOIN documents in the browser or Node.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openbimrs/loin.git"
+  },
+  "homepage": "https://openbimrs.github.io/loin/",
+  "keywords": [
+    "bim",
+    "openbim",
+    "loin",
+    "iso-7817",
+    "wasm"
+  ],
+  "main": "openbim_loin_wasm.js",
+  "types": "openbim_loin_wasm.d.ts",
+  "files": [
+    "openbim_loin_wasm_bg.wasm",
+    "openbim_loin_wasm.js",
+    "openbim_loin_wasm.d.ts"
+  ],
+  "sideEffects": [
+    "./openbim_loin_wasm.js"
+  ]
+}

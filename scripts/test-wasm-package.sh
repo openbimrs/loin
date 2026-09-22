@@ -37,3 +37,22 @@ if [ "$size" -lt 50000 ]; then
 fi
 
 LOIN_WASM_PKG="$out" node openbim-loin-wasm/tests/node_smoke.js
+
+# The npm manifest must stay in step with the crate version and must list
+# files that the generator actually emits, or the published tarball is broken.
+python3 - "$out" <<'PY'
+import json
+import pathlib
+import sys
+
+out = pathlib.Path(sys.argv[1])
+manifest = json.loads(pathlib.Path("openbim-loin-wasm/npm/package.json").read_text())
+cargo = pathlib.Path("openbim-loin-wasm/Cargo.toml").read_text()
+version = next(
+    line.split('"')[1] for line in cargo.splitlines() if line.startswith("version")
+)
+assert manifest["version"] == version, (manifest["version"], version)
+for name in [*manifest["files"], manifest["main"], manifest["types"]]:
+    assert (out / name).is_file(), f"npm manifest lists a missing file: {name}"
+print("npm manifest OK:", manifest["name"], manifest["version"])
+PY

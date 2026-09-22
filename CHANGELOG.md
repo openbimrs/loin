@@ -7,6 +7,27 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- `openbim-loin-wasm` errors are now machine-readable: a parse failure
+  throws `LoinParseError` carrying `kind` and `position` as real
+  properties, so an editor can place a marker at the byte offset instead
+  of regexing the message. Previously both were flattened into text.
+- `openbim-loin-wasm` diagnostic `code`, `severity` and parse `kind`
+  strings are an explicit exhaustive mapping rather than Rust `Debug`
+  output, so an upstream variant rename breaks the build instead of
+  silently changing the JS contract.
+- `validate()` is typed as `Diagnostic[]` in the generated `.d.ts`
+  instead of `any`.
+
+### Added
+
+- `console_error_panic_hook` in `openbim-loin-wasm`, so a Rust panic
+  reaches the JS console with a stack trace.
+- `openbim-loin-wasm/npm/package.json`, an npm manifest for publishing
+  the generated bindings as `@openbimrs/loin`. The gate asserts it stays
+  in step with the crate version and lists only emitted files.
+
 ### Added
 
 - `openbim-loin-wasm`, browser/Node bindings exposing `validate`,

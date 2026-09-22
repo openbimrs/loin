@@ -42,3 +42,26 @@ assert.throws(() => m.validate("this is not xml"), /.*/);
 
 console.log("wasm package OK:", diags.length, "diagnostics;",
   "round-trip", m.rewrite(good).length, "bytes");
+
+// 4. A parse failure must stay MACHINE-READABLE: kind and position are
+//    real properties, so an editor can place a marker without regexing
+//    the message text.
+let caught = null;
+try { m.validate("<a><b></a>"); } catch (e) { caught = e; }
+assert(caught, "malformed XML must throw");
+assert.strictEqual(caught.name, "LoinParseError");
+assert.strictEqual(typeof caught.kind, "string", "kind is exposed");
+assert.strictEqual(typeof caught.position, "number", "position is exposed");
+assert.strictEqual(caught.kind, "MalformedXml", caught.kind);
+
+// 5. Diagnostic codes are an explicit mapping, not Rust Debug output.
+//    Guard the exact spelling so a Rust-side rename cannot silently
+//    change the JS contract.
+assert.strictEqual(lang.code, "MissingLanguage");
+assert.deepStrictEqual(
+  Object.keys(lang).sort(),
+  ["code", "message", "path", "severity"],
+  "diagnostic shape is stable"
+);
+
+console.log("structured errors OK:", caught.kind, "@", caught.position);
