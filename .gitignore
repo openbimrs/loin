@@ -12,3 +12,6 @@
 
 # Local scratch worktrees for iterative review/dev — never tracked.
 /.worktrees/
+
+# npm package staging, produced by scripts/build-npm-package.py
+/dist/

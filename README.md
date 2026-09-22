@@ -143,6 +143,27 @@ ownership, semantic alias purity, isolated mutations, and canonical crates.io
 package verification using command exit codes. The alias package is verified
 after its exact canonical version is registry-visible.
 
+The wasm checks need `wasm-bindgen-cli` (matching the locked `wasm-bindgen`
+version, see `scripts/wasm-bindgen-version.py`), the `wasm32-unknown-unknown`
+target, and Node. Without them the gate skips those checks locally. CI sets
+`LOIN_WASM_STRICT=1`, which turns a skip into a failure so the assertions
+cannot silently no-op.
+
+## Releasing
+
+Pushing a `v*` tag runs `.github/workflows/release.yml`, which refuses a tag
+that disagrees with `openbim-loin-wasm/Cargo.toml` and its npm manifest, runs
+the full gate on the tagged commit, then creates a GitHub release with notes
+taken from this changelog and publishes `@openbimrs/loin` to npm.
+
+```bash
+git tag -a v0.3.4 -m "openbim-loin-wasm 0.3.4"
+git push origin v0.3.4
+```
+
+Rust crates are still published manually with `cargo publish`; the workflow
+covers the npm package and the GitHub release only.
+
 ## Contributing
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md). Capability work must add executable

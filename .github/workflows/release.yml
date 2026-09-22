@@ -1,0 +1,79 @@
+name: Release
+
+# Tag push is the trigger because that is how releases are already cut here:
+# the tag is the human decision, everything downstream follows from it.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish release and npm package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Install Rust 1.88
+        uses: dtolnay/rust-toolchain@1.88.0
+        with:
+          components: rustfmt, clippy
+          targets: wasm32-unknown-unknown
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Resolve wasm-bindgen version
+        id: wb
+        run: echo "version=$(python3 scripts/wasm-bindgen-version.py)" >> "$GITHUB_OUTPUT"
+      - name: Install wasm-bindgen CLI
+        run: |
+          have="$(wasm-bindgen --version 2>/dev/null | awk '{print $2}' || true)"
+          if [ "$have" != "${{ steps.wb.outputs.version }}" ]; then
+            cargo install wasm-bindgen-cli \
+              --version "${{ steps.wb.outputs.version }}" --locked --force
+          fi
+
+      # Refuse to publish a tag that disagrees with the manifests. Without this
+      # a v0.4.0 tag would happily ship 0.3.3 to npm.
+      - name: Verify tag matches manifest version
+        run: python3 scripts/check-release-version.py "${GITHUB_REF_NAME}"
+
+      # The gate must pass on the tagged commit itself, not just on the branch
+      # it came from, or a release could ship code no gate ever saw.
+      - name: Run verified gate
+        env:
+          LOIN_WASM_STRICT: '1'
+        run: ./scripts/gate.sh
+
+      - name: Build npm package
+        run: python3 scripts/build-npm-package.py dist
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes="$(python3 scripts/changelog-section.py "${GITHUB_REF_NAME}")"
+          gh release create "${GITHUB_REF_NAME}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "${GITHUB_REF_NAME}" \
+            --notes "$notes" \
+            dist/*.tgz
+
+      # Scoped packages default to restricted; --access public is required or
+      # the publish fails. NPM_TOKEN must be an automation token: a classic
+      # token with 2FA-on-publish cannot complete a CI publish.
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN}" ]; then
+            echo "NPM_TOKEN is not set; skipping npm publish" >&2
+            exit 1
+          fi
+          npm publish --access public
+        working-directory: dist/package

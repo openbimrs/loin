@@ -18,5 +18,31 @@ jobs:
         uses: dtolnay/rust-toolchain@1.88.0
         with:
           components: rustfmt, clippy
+          targets: wasm32-unknown-unknown
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Resolve wasm-bindgen version
+        id: wb
+        run: echo "version=$(python3 scripts/wasm-bindgen-version.py)" >> "$GITHUB_OUTPUT"
+      - name: Cache wasm-bindgen CLI
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/wasm-bindgen
+          key: wasm-bindgen-${{ runner.os }}-${{ steps.wb.outputs.version }}
+      - name: Install wasm-bindgen CLI
+        run: |
+          have="$(wasm-bindgen --version 2>/dev/null | awk '{print $2}' || true)"
+          if [ "$have" != "${{ steps.wb.outputs.version }}" ]; then
+            cargo install wasm-bindgen-cli \
+              --version "${{ steps.wb.outputs.version }}" --locked --force
+          fi
+      # LOIN_WASM_STRICT turns a missing-toolchain skip into a hard failure.
+      # Without it the wasm assertions silently no-op and the gate still
+      # reports success, which is exactly what happened before this job
+      # installed the toolchain.
       - name: Run verified gate
+        env:
+          LOIN_WASM_STRICT: '1'
         run: ./scripts/gate.sh

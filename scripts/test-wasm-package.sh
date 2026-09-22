@@ -7,17 +7,30 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-if ! command -v wasm-bindgen >/dev/null; then
-    printf 'wasm-bindgen CLI not installed; skipping wasm package test\n' >&2
+# The tooling guards below let this degrade on a developer machine without the
+# wasm toolchain. On CI that would be a silent bypass: the gate would report
+# success having executed none of these assertions. Setting LOIN_WASM_STRICT=1
+# turns every skip into a hard failure, and CI sets it.
+strict="${LOIN_WASM_STRICT:-0}"
+
+unavailable() {
+    if [ "$strict" = "1" ]; then
+        printf 'wasm package test cannot run: %s\n' "$1" >&2
+        printf 'LOIN_WASM_STRICT=1 forbids skipping. Install the toolchain.\n' >&2
+        exit 1
+    fi
+    printf 'skipping wasm package test: %s\n' "$1" >&2
     exit 0
+}
+
+if ! command -v wasm-bindgen >/dev/null; then
+    unavailable 'wasm-bindgen CLI not installed'
 fi
 if ! rustup target list --installed | grep -qx wasm32-unknown-unknown; then
-    printf 'wasm32-unknown-unknown target missing; skipping wasm package test\n' >&2
-    exit 0
+    unavailable 'wasm32-unknown-unknown target missing'
 fi
 if ! command -v node >/dev/null; then
-    printf 'node not installed; skipping wasm package test\n' >&2
-    exit 0
+    unavailable 'node not installed'
 fi
 
 out="$(mktemp -d)"
