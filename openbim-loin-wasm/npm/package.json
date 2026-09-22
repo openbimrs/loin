@@ -1,5 +1,5 @@
 {
-  "name": "@openbimrs/loin",
+  "name": "@openbim/loin",
   "version": "0.3.3",
   "description": "Parse, validate and rewrite ISO 7817-3 LOIN documents in the browser or Node.",
   "license": "MIT",

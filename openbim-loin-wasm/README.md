@@ -63,7 +63,7 @@ wasm-bindgen --target nodejs --out-dir pkg \
 `--target web` or `bundler` work equally; `nodejs` is what the gate uses.
 
 `npm/package.json` is the npm manifest: copy it next to the generated
-files and `npm pack` to produce a publishable `@openbimrs/loin` tarball.
+files and `npm pack` to produce a publishable `@openbim/loin` tarball.
 
 ## Verification
 

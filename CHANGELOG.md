@@ -34,7 +34,7 @@ and this project follows [Semantic Versioning](https://semver.org/).
 - `console_error_panic_hook` in `openbim-loin-wasm`, so a Rust panic
   reaches the JS console with a stack trace.
 - `openbim-loin-wasm/npm/package.json`, an npm manifest for publishing
-  the generated bindings as `@openbimrs/loin`. The gate asserts it stays
+  the generated bindings as `@openbim/loin`. The gate asserts it stays
   in step with the crate version and lists only emitted files.
 - `openbim-loin-wasm`, browser/Node bindings exposing `validate`,
   `rewrite` and `isWellFormed`. Diagnostics cross the JS boundary as
