@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["openbim-loin", "loin"]
+members = ["openbim-loin", "loin", "openbim-loin-wasm"]
 
 [profile.release]
 opt-level = 3

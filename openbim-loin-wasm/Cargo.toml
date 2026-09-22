@@ -1,0 +1,26 @@
+[package]
+name = "openbim-loin-wasm"
+version = "0.3.2"
+edition = "2021"
+rust-version = "1.85"
+license = "MIT"
+authors = ["point-grey"]
+repository = "https://github.com/openbimrs/loin"
+description = "Browser and WASM bindings for openbim-loin."
+keywords = ["bim", "openbim", "loin", "wasm"]
+categories = ["wasm"]
+
+# cdylib is what wasm-bindgen links; rlib keeps `cargo test` usable natively.
+# This key is per-crate and cannot be toggled by a feature, which is the
+# reason these bindings live in their own crate instead of behind a feature.
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+openbim-loin = { path = "../openbim-loin", version = "=0.3.2" }
+wasm-bindgen = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde-wasm-bindgen = "0.6"
+
+
+js-sys = "0.3"

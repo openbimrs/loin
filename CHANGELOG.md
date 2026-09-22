@@ -7,6 +7,19 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `openbim-loin-wasm`, browser/Node bindings exposing `validate`,
+  `rewrite` and `isWellFormed`. Diagnostics cross the JS boundary as
+  structured objects, so callers branch on `code` instead of parsing
+  message text. Kept a separate crate because `crate-type` is a per-crate
+  manifest key that no Cargo feature can toggle, so a feature would force
+  a cdylib and `wasm-bindgen` onto every native consumer.
+- `scripts/test-wasm-package.sh`, which builds the wasm module, generates
+  the wasm-bindgen package, rejects a stripped payload, and runs the
+  bindings under Node. Wired into the gate.
+
+
 ### Fixed
 
 - `EmailAddress` no longer accepts a leading `@`. The check scanned for any

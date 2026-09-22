@@ -54,6 +54,8 @@ alias = packages["loin"]
 version = canonical["version"]
 assert alias["version"] == version, (alias["version"], version)
 deps = {dependency["name"]: dependency for dependency in canonical["dependencies"]}
+# The core crate must never grow a wasm/JS dependency: browser bindings live in
+# openbim-loin-wasm precisely so native consumers never pay for wasm-bindgen.
 assert set(deps) == {"openbim-dt", "quick-xml", "roxmltree"}, deps
 assert deps["openbim-dt"]["req"] == "^0.2.0", deps["openbim-dt"]
 assert deps["openbim-dt"].get("path") is None, deps["openbim-dt"]
@@ -69,3 +71,4 @@ printf 'alias package verification deferred until the canonical crate is registr
 ./scripts/test-schema-shape.sh
 python3 scripts/test-xml-capability.py
 python3 scripts/test-authoring-mutations.py
+./scripts/test-wasm-package.sh

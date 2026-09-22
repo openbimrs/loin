@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 def copy_candidate(destination: Path) -> None:
     for name in ("Cargo.toml", "Cargo.lock"):
         shutil.copy2(ROOT / name, destination / name)
-    for name in ("loin", "openbim-loin"):
+    for name in ("loin", "openbim-loin", "openbim-loin-wasm"):
         shutil.copytree(ROOT / name, destination / name)
     scripts = destination / "scripts"
     scripts.mkdir()
