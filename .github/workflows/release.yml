@@ -31,7 +31,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
+          # Deliberately no registry-url here: setup-node writes an .npmrc
+          # with an authToken line whenever it's set, and that line is blank
+          # when NPM_TOKEN is unset. A blank credential makes the publish PUT
+          # 404 instead of falling through to OIDC trusted publishing, which
+          # silently breaks that path. Auth is set explicitly below instead.
       - name: Resolve wasm-bindgen version
         id: wb
         run: echo "version=$(python3 scripts/wasm-bindgen-version.py)" >> "$GITHUB_OUTPUT"
@@ -72,8 +76,15 @@ jobs:
       # Scoped packages default to restricted; --access public is required or
       # the publish fails. Trusted publishing (OIDC) is used when the repo is
       # registered as a trusted publisher for @openbim/loin; otherwise this
-      # falls back to NPM_TOKEN, which must be an automation token — a classic
-      # token with 2FA-on-publish cannot complete a CI publish.
+      # falls back to NPM_TOKEN, which must be a write token with "Bypass
+      # two-factor authentication" checked and NOT "stage only" — a stage-only
+      # token can run `npm stage publish` but always rejects `npm publish`,
+      # and a token without the bypass box fails E403 with no OTP prompt for
+      # CI to answer.
+      #
+      # The registry is configured here rather than via setup-node's
+      # registry-url, which writes an authToken line even when the token is
+      # empty and breaks the OIDC fallback (see the Install Node step).
       #
       # npm >= 11.5.1 is required for OIDC; setup-node ships an older npm, so
       # it is upgraded explicitly rather than assumed.
@@ -83,9 +94,12 @@ jobs:
         run: |
           npm install -g npm@latest
           npm --version
-          if [ -z "${NODE_AUTH_TOKEN}" ]; then
-            echo "NPM_TOKEN is unset and no trusted publisher is configured." >&2
-            echo "Register this workflow at npmjs.com or set NPM_TOKEN." >&2
+          if [ -n "${NODE_AUTH_TOKEN}" ]; then
+            npm config set //registry.npmjs.org/:_authToken="${NODE_AUTH_TOKEN}"
+          elif [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
+            echo "No NPM_TOKEN and no OIDC token endpoint available." >&2
+            echo "Set NPM_TOKEN, or register this workflow as a trusted" >&2
+            echo "publisher for @openbim/loin at npmjs.com." >&2
             exit 1
           fi
           npm publish --access public
