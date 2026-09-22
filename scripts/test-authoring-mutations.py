@@ -15,6 +15,19 @@ SRC = ROOT / "openbim-loin" / "src"
 
 MUTATIONS = [
     (
+        "issue5-setter-drops-duplicates",
+        "model.rs",
+        """        Ok(())
+    }
+    pub fn set_definition""",
+        """        { let mut d = false; self.items.retain(|i| { if matches(i) { let f = !d; d = true; return f; } true }); }
+        Ok(())
+    }
+    pub fn set_definition""",
+        "purpose_choice",
+        "set_language_preserves_repeated_branches",
+    ),
+    (
         "issue2-dt-language-unchecked",
         "validation.rs",
         "    validate_dt_multilingual_text(element, path, diagnostics);\n",

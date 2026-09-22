@@ -7,6 +7,24 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-09-21
+
+### Fixed
+
+- `Purpose`'s singular setters (`set_definition`, `set_language`, `set_region`,
+  `set_dictionary_ref`) no longer delete later occurrences of the branch they
+  set. The XSD choice is `maxOccurs="unbounded"`, so a repeated `Language`,
+  `Region`, `Definition` or `DictionaryRef` is valid authored content, and the
+  setters were silently discarding it. They now replace the first occurrence
+  in place and leave the rest untouched. Resolves #5.
+
+### Added
+
+- `Purpose::set_all_definitions`, `set_all_languages`, `set_all_regions` and
+  `set_all_dictionary_refs`, the explicit opt-in for callers that mean "this
+  Purpose has exactly one of these". Each returns the number of duplicate
+  branches removed, so a no-op is distinguishable from real data loss.
+
 ## [0.3.1] - 2026-09-21
 
 ### Fixed

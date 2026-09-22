@@ -202,6 +202,93 @@ impl Purpose {
         self.items.push(value);
     }
 
+    /// Collapses every matching branch to the single supplied value.
+    ///
+    /// Use this when the caller means this Purpose has exactly one of a
+    /// branch. The first occurrence keeps its document position; later
+    /// duplicates are removed. Returns how many were removed, so a caller
+    /// can tell a no-op from real data loss.
+    fn set_all_items(
+        &mut self,
+        matches: impl Fn(&PurposeItem) -> bool,
+        replacement: Option<PurposeItem>,
+    ) -> Result<usize, EmptyPurpose> {
+        let before = self.items.iter().filter(|i| matches(i)).count();
+        self.replace_optional_item(&matches, replacement)?;
+        let mut seen = false;
+        self.items.retain(|item| {
+            if matches(item) {
+                let first = !seen;
+                seen = true;
+                return first;
+            }
+            true
+        });
+        let after = self.items.iter().filter(|i| matches(i)).count();
+        Ok(before.saturating_sub(after))
+    }
+
+    /// Collapses every `Definition` branch to one value.
+    ///
+    /// Returns the number of duplicate branches removed.
+    /// # Errors
+    /// Returns `EmptyPurpose` if this would empty the choice.
+    pub fn set_all_definitions(
+        &mut self,
+        value: Option<MultiLanguageText>,
+    ) -> Result<usize, EmptyPurpose> {
+        self.set_all_items(
+            |item| matches!(item, PurposeItem::Definition(_)),
+            value.map(PurposeItem::Definition),
+        )
+    }
+
+    /// Collapses every `Language` branch to one value.
+    ///
+    /// Returns the number of duplicate branches removed.
+    /// # Errors
+    /// Returns `EmptyPurpose` if this would empty the choice.
+    pub fn set_all_languages(&mut self, value: Option<Language>) -> Result<usize, EmptyPurpose> {
+        self.set_all_items(
+            |item| matches!(item, PurposeItem::Language(_)),
+            value.map(PurposeItem::Language),
+        )
+    }
+
+    /// Collapses every `Region` branch to one value.
+    ///
+    /// Returns the number of duplicate branches removed.
+    /// # Errors
+    /// Returns `EmptyPurpose` if this would empty the choice.
+    pub fn set_all_regions(&mut self, value: Option<String>) -> Result<usize, EmptyPurpose> {
+        self.set_all_items(
+            |item| matches!(item, PurposeItem::Region(_)),
+            value.map(PurposeItem::Region),
+        )
+    }
+
+    /// Collapses every `DictionaryRef` branch to one value.
+    ///
+    /// Returns the number of duplicate branches removed.
+    /// # Errors
+    /// Returns `EmptyPurpose` if this would empty the choice.
+    pub fn set_all_dictionary_refs(
+        &mut self,
+        value: Option<Reference>,
+    ) -> Result<usize, EmptyPurpose> {
+        self.set_all_items(
+            |item| matches!(item, PurposeItem::DictionaryRef(_)),
+            value.map(PurposeItem::DictionaryRef),
+        )
+    }
+
+    /// Replaces the FIRST matching branch in place, leaving any later
+    /// occurrences untouched.
+    ///
+    /// The XSD choice is `maxOccurs="unbounded"`, so a branch may legitimately
+    /// repeat. Deleting the extras here would destroy valid authored content,
+    /// so callers that mean "there is exactly one" should use the
+    /// `set_all_*` family instead.
     fn replace_optional_item(
         &mut self,
         matches: impl Fn(&PurposeItem) -> bool,
@@ -228,16 +315,6 @@ impl Purpose {
                 }
             }
         }
-        // Later duplicates would make the setter's single-value view a lie.
-        let mut seen = false;
-        self.items.retain(|item| {
-            if matches(item) {
-                let first = !seen;
-                seen = true;
-                return first;
-            }
-            true
-        });
         Ok(())
     }
     pub fn set_definition(&mut self, value: Option<MultiLanguageText>) -> Result<(), EmptyPurpose> {
