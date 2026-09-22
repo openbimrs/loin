@@ -9,11 +9,6 @@ on:
 
 permissions:
   contents: write
-  # Required for npm trusted publishing (OIDC). npm is restricting tokens that
-  # bypass 2FA — account changes Aug 2026, direct publishing Jan 2027 — so the
-  # workflow is wired for OIDC now and falls back to NPM_TOKEN until the
-  # trusted publisher is configured on npmjs.com.
-  id-token: write
 
 jobs:
   release:
@@ -33,9 +28,7 @@ jobs:
           node-version: '20'
           # Deliberately no registry-url here: setup-node writes an .npmrc
           # with an authToken line whenever it's set, and that line is blank
-          # when NPM_TOKEN is unset. A blank credential makes the publish PUT
-          # 404 instead of falling through to OIDC trusted publishing, which
-          # silently breaks that path. Auth is set explicitly below instead.
+          # when NPM_TOKEN is unset — better to fail loudly below than 404.
       - name: Resolve wasm-bindgen version
         id: wb
         run: echo "version=$(python3 scripts/wasm-bindgen-version.py)" >> "$GITHUB_OUTPUT"
@@ -73,34 +66,43 @@ jobs:
             --notes "$notes" \
             dist/*.tgz
 
-      # Scoped packages default to restricted; --access public is required or
-      # the publish fails. Trusted publishing (OIDC) is used when the repo is
-      # registered as a trusted publisher for @openbim/loin; otherwise this
-      # falls back to NPM_TOKEN, which must be a write token with "Bypass
-      # two-factor authentication" checked and NOT "stage only" — a stage-only
-      # token can run `npm stage publish` but always rejects `npm publish`,
-      # and a token without the bypass box fails E403 with no OTP prompt for
-      # CI to answer.
+      # npm stage publish never needs 2FA, so the token you already have
+      # ("read and write, stage only") is the right one for this — it just
+      # cannot run npm publish directly, by design.
+      #
+      # npm stage publish requires the package to already exist on the
+      # registry, so this cannot perform the very first release — that
+      # needs one manual `npm publish --access public` from a maintainer.
       #
       # The registry is configured here rather than via setup-node's
       # registry-url, which writes an authToken line even when the token is
-      # empty and breaks the OIDC fallback (see the Install Node step).
+      # empty (see the Install Node step).
       #
-      # npm >= 11.5.1 is required for OIDC; setup-node ships an older npm, so
-      # it is upgraded explicitly rather than assumed.
-      - name: Publish to npm
+      # `npm stage` is a recent addition; setup-node's bundled npm predates
+      # it, so npm is upgraded explicitly to guarantee it's available.
+      - name: Stage npm package for approval
+        id: stage
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           npm install -g npm@latest
           npm --version
-          if [ -n "${NODE_AUTH_TOKEN}" ]; then
-            npm config set //registry.npmjs.org/:_authToken="${NODE_AUTH_TOKEN}"
-          elif [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
-            echo "No NPM_TOKEN and no OIDC token endpoint available." >&2
-            echo "Set NPM_TOKEN, or register this workflow as a trusted" >&2
-            echo "publisher for @openbim/loin at npmjs.com." >&2
+          if [ -z "${NODE_AUTH_TOKEN}" ]; then
+            echo "NPM_TOKEN is not set; cannot stage a publish." >&2
             exit 1
           fi
-          npm publish --access public
+          npm config set //registry.npmjs.org/:_authToken="${NODE_AUTH_TOKEN}"
+          npm stage publish --access public | tee stage-output.txt
         working-directory: dist/package
+
+      - name: Report staged package
+        run: |
+          echo "## npm package staged for approval" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Approve with 2FA on npmjs.com (Staged Packages tab) or:" \
+            >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "npm stage list @openbim/loin" >> "$GITHUB_STEP_SUMMARY"
+          echo "npm stage approve <stage-id>" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat dist/package/stage-output.txt >> "$GITHUB_STEP_SUMMARY" || true
