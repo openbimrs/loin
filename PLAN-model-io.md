@@ -85,3 +85,7 @@ those, so lossless editing stays on LoinDocument.
 DT bridge: LOIN converts XmlElement <-> dt::Element with dt's new public
 builder (phase 1), then calls dt from_element/to_element. The adapter
 lives in LOIN; dt stays unaware of LOIN.
+
+- [~] phase 1 (dt codec): worker stalled after step 1 (builder only,
+      uncommitted, one namespace bug). Reviewed, fixed, tested, committed
+      as dt d159cdb on feature/owned-codec (local). Steps 2-3 remain.
