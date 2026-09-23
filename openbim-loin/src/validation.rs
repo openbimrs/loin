@@ -9,7 +9,7 @@
 use std::fmt;
 use std::str::FromStr;
 
-use crate::{dt, LoinDocument, XmlElement, XmlNode};
+use crate::{dt, model, LoinDocument, XmlElement, XmlNode};
 
 const XMLNS_NAMESPACE: &str = "http://www.w3.org/2000/xmlns/";
 const XSI_NAMESPACE: &str = "http://www.w3.org/2001/XMLSchema-instance";
@@ -267,66 +267,8 @@ const THRESHOLD_DIMENSION: &[ChildRule] = &[
 ];
 const NO_CHILDREN: &[ChildRule] = &[];
 
-const SHAPE_ASSEMBLY: &[&str] = &[
-    "NotRequired",
-    "SingleObjectSingularShape",
-    "SingleObjectMultipleShapes",
-    "MultipleObjects",
-];
-const SHAPE_REPRESENTATION: &[&str] = &[
-    "NotRequired",
-    "SingleBoundingPrimitive",
-    "OuterShellAsSingularShape",
-    "OuterShellAsSeparateShapes",
-];
-const INSIDE_GEOMETRY: &[&str] = &[
-    "NotRequired",
-    "NoInsideGeometry",
-    "InsideGeometryAsPartOfShape",
-    "SeparateShapes",
-];
-const CONNECTIONS: &[&str] = &[
-    "NotRequired",
-    "NoConnections",
-    "ConnectionsAsPartOfShape",
-    "SeparateShapes",
-];
-const OPENINGS: &[&str] = &[
-    "NotRequired",
-    "NoOpenings",
-    "OpeningsAsPartOfShape",
-    "SeparateShapes",
-];
-const ZONES: &[&str] = &[
-    "NotRequired",
-    "NoZones",
-    "ZonesAsPartOfShape",
-    "SeparateShapes",
-];
-const FEATURES: &[&str] = &[
-    "NotRequired",
-    "NoFeatures",
-    "FeaturesAsPartOfShape",
-    "SeparateShapes",
-];
-const DIMENSIONALITY: &[&str] = &["NotRequired", "0D", "1D", "2D", "3D"];
-const APPEARANCE: &[&str] = &[
-    "NotRequired",
-    "NoAppearanceInformation",
-    "SymbolicByMapping",
-    "SingularMaterial",
-    "MultipleMaterials",
-    "ConceptualAppearance",
-    "RealisticAppearance",
-];
-const PARAMETRIC: &[&str] = &["NotRequested", "Requested"];
-const POSITION: &[&str] = &["NotDefined", "Absolute", "Relative"];
-const CRS_TYPE: &[&str] = &[
-    "NotRequired",
-    "ProjectedCRS",
-    "EngineeringCRS",
-    "GeographicCRS",
-];
+// Enumeration value sets live on the model enums (`VALUES`), the single
+// source shared by validation, reading and writing.
 
 pub(crate) fn validate_document(document: &LoinDocument) -> Vec<Diagnostic> {
     let mut diagnostics = Vec::new();
@@ -1069,18 +1011,24 @@ fn validate_lexical_content(
     }
 
     let values = match (parent, name) {
-        (Some("Detail"), "ShapeAssembly") => Some(SHAPE_ASSEMBLY),
-        (Some("Detail"), "ShapeRepresentation") => Some(SHAPE_REPRESENTATION),
-        (Some("ShapeInfluence"), "InsideGeometry") => Some(INSIDE_GEOMETRY),
-        (Some("ShapeInfluence"), "Connections") => Some(CONNECTIONS),
-        (Some("ShapeInfluence"), "Openings") => Some(OPENINGS),
-        (Some("ShapeInfluence"), "OperatingAndClearanceZones") => Some(ZONES),
-        (Some("ShapeInfluence"), "Features") => Some(FEATURES),
-        (Some("GeometricalInformation"), "Dimensionality") => Some(DIMENSIONALITY),
-        (Some("GeometricalInformation"), "Appearance") => Some(APPEARANCE),
-        (Some("GeometricalInformation"), "ParametricBehaviour") => Some(PARAMETRIC),
-        (Some("Location"), "RelativeOrAbsolute") => Some(POSITION),
-        (Some("CoordinateReferenceSystem"), "Type") => Some(CRS_TYPE),
+        (Some("Detail"), "ShapeAssembly") => Some(model::ShapeAssembly::VALUES),
+        (Some("Detail"), "ShapeRepresentation") => Some(model::ShapeRepresentation::VALUES),
+        (Some("ShapeInfluence"), "InsideGeometry") => Some(model::InsideGeometry::VALUES),
+        (Some("ShapeInfluence"), "Connections") => Some(model::Connections::VALUES),
+        (Some("ShapeInfluence"), "Openings") => Some(model::Openings::VALUES),
+        (Some("ShapeInfluence"), "OperatingAndClearanceZones") => {
+            Some(model::OperatingAndClearanceZones::VALUES)
+        }
+        (Some("ShapeInfluence"), "Features") => Some(model::Features::VALUES),
+        (Some("GeometricalInformation"), "Dimensionality") => Some(model::Dimensionality::VALUES),
+        (Some("GeometricalInformation"), "Appearance") => Some(model::Appearance::VALUES),
+        (Some("GeometricalInformation"), "ParametricBehaviour") => {
+            Some(model::ParametricBehaviour::VALUES)
+        }
+        (Some("Location"), "RelativeOrAbsolute") => Some(model::RelativeOrAbsolute::VALUES),
+        (Some("CoordinateReferenceSystem"), "Type") => {
+            Some(model::CoordinateReferenceSystemKind::VALUES)
+        }
         _ => None,
     };
     if values.is_some_and(|allowed| !allowed.contains(&value.as_str())) {

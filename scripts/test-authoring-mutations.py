@@ -146,6 +146,22 @@ MUTATIONS = [
         "authoring",
         "georeferencing_registry_reference_is_refused_as_dt_content",
     ),
+    (
+        "enum-value-dropped",
+        "model.rs",
+        '''    MultipleObjects => "MultipleObjects",''',
+        '''    MultipleObjects => "MultipleObjectz",''',
+        "enumerations",
+        "enumerations_match_the_xsd_and_round_trip",
+    ),
+    (
+        "dimensionality-lexical-swapped",
+        "model.rs",
+        '''    ZeroD => "0D",''',
+        '''    ZeroD => "ZeroD",''',
+        "enumerations",
+        "enumerations_match_the_xsd_and_round_trip",
+    ),
 ]
 
 

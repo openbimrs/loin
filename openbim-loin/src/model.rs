@@ -880,79 +880,141 @@ impl Documentation {
     }
 }
 
+/// A value outside an ISO 7817-3 enumeration.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InvalidEnumerationValue {
+    enumeration: &'static str,
+    value: String,
+}
+
+impl InvalidEnumerationValue {
+    fn new(enumeration: &'static str, value: &str) -> Self {
+        Self {
+            enumeration,
+            value: value.to_owned(),
+        }
+    }
+    /// Rust name of the enumeration that rejected the value.
+    #[must_use]
+    pub const fn enumeration(&self) -> &'static str {
+        self.enumeration
+    }
+    /// The rejected value, exactly as given.
+    #[must_use]
+    pub fn value(&self) -> &str {
+        &self.value
+    }
+}
+
+impl fmt::Display for InvalidEnumerationValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?} is not a {} value", self.value, self.enumeration)
+    }
+}
+
+impl std::error::Error for InvalidEnumerationValue {}
+
 macro_rules! loin_enumeration {
-    ($name:ident { $($variant:ident),+ $(,)? }) => {
+    ($(#[$meta:meta])* $name:ident { $($variant:ident => $xml:literal),+ $(,)? }) => {
+        $(#[$meta])*
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
         pub enum $name { $($variant),+ }
+
+        impl $name {
+            /// Every schema lexical value, in declaration order.
+            pub const VALUES: &'static [&'static str] = &[$($xml),+];
+
+            /// The schema lexical value this variant is written as.
+            #[must_use]
+            pub const fn as_str(self) -> &'static str {
+                match self { $(Self::$variant => $xml),+ }
+            }
+        }
+
+        impl fmt::Display for $name {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                f.write_str(self.as_str())
+            }
+        }
+
+        impl FromStr for $name {
+            type Err = InvalidEnumerationValue;
+            fn from_str(value: &str) -> Result<Self, Self::Err> {
+                match value {
+                    $($xml => Ok(Self::$variant),)+
+                    _ => Err(InvalidEnumerationValue::new(stringify!($name), value)),
+                }
+            }
+        }
     };
 }
 
 loin_enumeration!(ShapeAssembly {
-    NotRequired,
-    SingleObjectSingularShape,
-    SingleObjectMultipleShapes,
-    MultipleObjects
+    NotRequired => "NotRequired",
+    SingleObjectSingularShape => "SingleObjectSingularShape",
+    SingleObjectMultipleShapes => "SingleObjectMultipleShapes",
+    MultipleObjects => "MultipleObjects",
 });
 loin_enumeration!(ShapeRepresentation {
-    NotRequired,
-    SingleBoundingPrimitive,
-    OuterShellAsSingularShape,
-    OuterShellAsSeparateShapes
+    NotRequired => "NotRequired",
+    SingleBoundingPrimitive => "SingleBoundingPrimitive",
+    OuterShellAsSingularShape => "OuterShellAsSingularShape",
+    OuterShellAsSeparateShapes => "OuterShellAsSeparateShapes",
 });
 loin_enumeration!(InsideGeometry {
-    NotRequired,
-    NoInsideGeometry,
-    InsideGeometryAsPartOfShape,
-    SeparateShapes
+    NotRequired => "NotRequired",
+    NoInsideGeometry => "NoInsideGeometry",
+    InsideGeometryAsPartOfShape => "InsideGeometryAsPartOfShape",
+    SeparateShapes => "SeparateShapes",
 });
 loin_enumeration!(Connections {
-    NotRequired,
-    NoConnections,
-    ConnectionsAsPartOfShape,
-    SeparateShapes
+    NotRequired => "NotRequired",
+    NoConnections => "NoConnections",
+    ConnectionsAsPartOfShape => "ConnectionsAsPartOfShape",
+    SeparateShapes => "SeparateShapes",
 });
 loin_enumeration!(Openings {
-    NotRequired,
-    NoOpenings,
-    OpeningsAsPartOfShape,
-    SeparateShapes
+    NotRequired => "NotRequired",
+    NoOpenings => "NoOpenings",
+    OpeningsAsPartOfShape => "OpeningsAsPartOfShape",
+    SeparateShapes => "SeparateShapes",
 });
 loin_enumeration!(OperatingAndClearanceZones {
-    NotRequired,
-    NoZones,
-    ZonesAsPartOfShape,
-    SeparateShapes
+    NotRequired => "NotRequired",
+    NoZones => "NoZones",
+    ZonesAsPartOfShape => "ZonesAsPartOfShape",
+    SeparateShapes => "SeparateShapes",
 });
 loin_enumeration!(Features {
-    NotRequired,
-    NoFeatures,
-    FeaturesAsPartOfShape,
-    SeparateShapes
+    NotRequired => "NotRequired",
+    NoFeatures => "NoFeatures",
+    FeaturesAsPartOfShape => "FeaturesAsPartOfShape",
+    SeparateShapes => "SeparateShapes",
 });
 loin_enumeration!(Dimensionality {
-    NotRequired,
-    ZeroD,
-    OneD,
-    TwoD,
-    ThreeD
+    NotRequired => "NotRequired",
+    ZeroD => "0D",
+    OneD => "1D",
+    TwoD => "2D",
+    ThreeD => "3D",
 });
 loin_enumeration!(Appearance {
-    NotRequired,
-    NoAppearanceInformation,
-    SymbolicByMapping,
-    SingularMaterial,
-    MultipleMaterials,
-    ConceptualAppearance,
-    RealisticAppearance
+    NotRequired => "NotRequired",
+    NoAppearanceInformation => "NoAppearanceInformation",
+    SymbolicByMapping => "SymbolicByMapping",
+    SingularMaterial => "SingularMaterial",
+    MultipleMaterials => "MultipleMaterials",
+    ConceptualAppearance => "ConceptualAppearance",
+    RealisticAppearance => "RealisticAppearance",
 });
 loin_enumeration!(ParametricBehaviour {
-    NotRequested,
-    Requested
+    NotRequested => "NotRequested",
+    Requested => "Requested",
 });
 loin_enumeration!(RelativeOrAbsolute {
-    NotDefined,
-    Absolute,
-    Relative
+    NotDefined => "NotDefined",
+    Absolute => "Absolute",
+    Relative => "Relative",
 });
 
 /// LOIN geometrical-information identity using the imported DT GUID attribute.
@@ -1278,14 +1340,14 @@ impl Datum {
     }
 }
 
-/// Declared coordinate-reference-system kind.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CoordinateReferenceSystemKind {
-    NotRequired,
-    ProjectedCrs,
-    EngineeringCrs,
-    GeographicCrs,
-}
+loin_enumeration!(
+    /// Declared coordinate-reference-system kind.
+    CoordinateReferenceSystemKind {
+    NotRequired => "NotRequired",
+    ProjectedCrs => "ProjectedCRS",
+    EngineeringCrs => "EngineeringCRS",
+    GeographicCrs => "GeographicCRS",
+});
 
 /// Coordinate reference system with required kind and datum.
 #[derive(Debug, Clone, PartialEq, Eq)]

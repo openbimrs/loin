@@ -14,6 +14,9 @@ and this project follows [Semantic Versioning](https://semver.org/).
   Previously it was refused with the DT-content error even though it is
   LOIN-owned. Only the DT-owned `RegistryReference` is still refused.
 - `DatumRegistryReference::descriptions()`, the missing getter.
+- Every ISO 7817-3 enumeration type gets `VALUES`, `as_str()`, `Display`
+  and `FromStr`, with `InvalidEnumerationValue` naming the enumeration and
+  the rejected value.
 
 ### Changed
 
@@ -22,6 +25,9 @@ and this project follows [Semantic Versioning](https://semver.org/).
 - The gate rejects a `Cargo.lock` that resolves `openbim-dt` to a path.
 - Release tags are lockstep: the tag must match every crate and the npm
   manifest, not only `openbim-loin-wasm`.
+- The validator reads enumeration values from the model enums instead of
+  its own string tables: one source for validation, reading and writing.
+  `CoordinateReferenceSystemKind` joins the generated set.
 
 ## [0.3.3] - 2026-09-22
 
