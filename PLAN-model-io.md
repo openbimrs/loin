@@ -89,3 +89,8 @@ lives in LOIN; dt stays unaware of LOIN.
 - [~] phase 1 (dt codec): worker stalled after step 1 (builder only,
       uncommitted, one namespace bug). Reviewed, fixed, tested, committed
       as dt d159cdb on feature/owned-codec (local). Steps 2-3 remain.
+
+- [x] phase 1 (dt owned codec) - openbim-dt 0.3.0 published 2026-09-23,
+      tag v0.3.0 at 05ddf02. CI + docs green; registry build verified.
+      Loin still pins ^0.2: bump to 0.3 is the first step of phase 4.
+      Phase-1 worker stalled; the codec was written directly, not delegated.
