@@ -32,7 +32,6 @@ cargo "${cargo_args[@]}" test --workspace --all-features --locked
 cargo "${cargo_args[@]}" clippy --workspace --all-targets --all-features --locked -- -D warnings
 RUSTDOCFLAGS="-D warnings" cargo "${cargo_args[@]}" doc --workspace --all-features --no-deps --locked
 scripts/check-alias-purity.sh
-python3 scripts/test_alias_purity.py
 python3 - <<'PY'
 import json
 import os
@@ -67,8 +66,25 @@ assert alias_dep[0]["req"] == f"={version}", alias_dep[0]
 PY
 cargo "${cargo_args[@]}" package -p openbim-loin --locked --allow-dirty
 printf 'alias package verification deferred until the canonical crate is registry-visible\\n'
-./scripts/test-dt-boundary.sh
-./scripts/test-schema-shape.sh
-python3 scripts/test-xml-capability.py
-python3 scripts/test-authoring-mutations.py
-./scripts/test-wasm-package.sh
+
+# Evidence scripts can exit 0 while doing nothing: a skipped toolchain, a
+# mutation whose anchor moved, a filter that matched no test. Each one prints
+# a completion marker; the gate records every script's output and then
+# requires every marker, so a silent no-op fails here instead of passing.
+evidence="$(mktemp)"
+# One EXIT trap owns all cleanup; a second `trap ... EXIT` would silently
+# replace the patch-config cleanup installed above.
+cleanup_gate() {
+    rm -f "$evidence"
+    if declare -F cleanup_patch_config >/dev/null; then cleanup_patch_config; fi
+}
+trap cleanup_gate EXIT INT TERM
+run_evidence() { "$@" 2>&1 | tee -a "$evidence"; }
+run_evidence python3 scripts/test_alias_purity.py
+run_evidence ./scripts/test-dt-boundary.sh
+run_evidence ./scripts/test-schema-shape.sh
+run_evidence python3 scripts/test-xml-capability.py
+run_evidence python3 scripts/test-authoring-mutations.py
+run_evidence ./scripts/test-wasm-package.sh
+python3 scripts/check-evidence.py "$evidence"
+python3 scripts/check-lockfile-sources.py

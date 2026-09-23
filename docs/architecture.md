@@ -15,7 +15,16 @@ dependencies, not inheritance from a parent workspace.
 ```text
 loin  -- exact-version dependency -->  openbim-loin  -->  openbim-dt
 (alias; no items)                       (all LOIN behavior)
+                                              ^
+openbim-loin-wasm  -- exact-version ---------+
+(wasm-bindgen bindings; npm @openbim/loin)
 ```
+
+`openbim-loin-wasm` is a separate package rather than a feature on
+`openbim-loin` because `crate-type = ["cdylib"]` is per-package and cannot be
+toggled by a feature ([ADR 0001](adr/0001-wasm-bindings-as-separate-crate.md)).
+The core crate therefore never carries a wasm or JS dependency; the gate pins its
+exact dependency set.
 
 Cargo permits consumers to rename a dependency locally, but crates.io has no
 publisher-side alias facility. Reserving both `openbim-loin` and `loin` requires
@@ -105,3 +114,11 @@ Changes spanning repositories follow dependency order:
 6. publish the integration commit.
 
 The superproject pin is the compatibility declaration and rollback point.
+
+## Releases
+
+Versions are lockstep: one `vX.Y.Z` tag means every crate and the npm manifest
+carry `X.Y.Z` ([ADR 0002](adr/0002-staged-npm-publish-and-lockstep-releases.md)).
+The tag workflow re-runs the gate on the tagged commit, cuts the GitHub release
+from `CHANGELOG.md`, and stages the npm package for manual 2FA approval. Rust
+crates are published with `cargo publish` in dependency order.

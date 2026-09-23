@@ -7,6 +7,22 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `LoinDocument::from_model` now writes `GeoReferencing`: coordinate
+  reference system, datums, and model coordinate systems.
+  Previously it was refused with the DT-content error even though it is
+  LOIN-owned. Only the DT-owned `RegistryReference` is still refused.
+- `DatumRegistryReference::descriptions()`, the missing getter.
+
+### Changed
+
+- The gate requires every evidence script's completion marker, so a
+  skipped or no-op check fails instead of passing silently.
+- The gate rejects a `Cargo.lock` that resolves `openbim-dt` to a path.
+- Release tags are lockstep: the tag must match every crate and the npm
+  manifest, not only `openbim-loin-wasm`.
+
 ## [0.3.3] - 2026-09-22
 
 ### Changed
