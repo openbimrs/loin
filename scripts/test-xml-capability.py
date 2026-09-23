@@ -120,7 +120,7 @@ def main() -> None:
             [
                 (
                     "openbim-loin/src/validation.rs",
-                    '        (Some("GeometricalInformation"), "Dimensionality") => Some(DIMENSIONALITY),',
+                    '        (Some("GeometricalInformation"), "Dimensionality") => Some(model::Dimensionality::VALUES),',
                     '        (Some("GeometricalInformation"), "Dimensionality") => None,',
                 )
             ],

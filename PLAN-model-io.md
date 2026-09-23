@@ -71,3 +71,17 @@ Worker branch: dt feature/owned-codec (.worktrees/codec), local only.
 Next for me: review diff + evidence, re-run gate, then push/release dt.
 
 - [x] phase 3 (enums single-sourced) - fb2ab3e, local; gate before push
+
+## Reader design (phase 4), decided 2026-09-23
+
+API: LevelOfInformationNeed::from_document(&LoinDocument)
+     -> Result<Self, ReadError>. Strict, fails closed.
+ReadError = stable kind + element path (same path format as Diagnostic).
+Reader does not re-validate: validate() stays the diagnostics API. The
+reader refuses what the model cannot represent, naming where.
+Round-trip contract: model -> doc -> model is identity. doc -> model is
+a semantic projection (drops extensions, comments); the XML tree keeps
+those, so lossless editing stays on LoinDocument.
+DT bridge: LOIN converts XmlElement <-> dt::Element with dt's new public
+builder (phase 1), then calls dt from_element/to_element. The adapter
+lives in LOIN; dt stays unaware of LOIN.
