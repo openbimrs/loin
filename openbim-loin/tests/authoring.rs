@@ -31,6 +31,18 @@ fn minimal_model() -> LevelOfInformationNeed {
     LevelOfInformationNeed::new(specification)
 }
 
+/// `minimal_model` with GeoReferencing on its only specification.
+fn model_with_geo(geo: openbim_loin::GeoReferencing) -> LevelOfInformationNeed {
+    let purpose = Purpose::new(guid(3), text("Coordination"));
+    let milestone = InformationDeliveryMilestone::new(guid(4), text("Gate"));
+    let providing = Actor::new(guid(5), text("Author"));
+    let receiving = Actor::new(guid(6), text("Reviewer"));
+    let prerequisites = Prerequisites::new(guid(2), purpose, milestone, providing, receiving);
+    let mut specification = Specification::new(guid(1), "Synthetic", prerequisites);
+    specification.set_geo_referencing(Some(geo));
+    LevelOfInformationNeed::new(specification)
+}
+
 fn errors(document: &LoinDocument) -> Vec<openbim_loin::Diagnostic> {
     document
         .validate()
@@ -310,4 +322,94 @@ fn clearing_the_last_purpose_item_is_refused() {
     let mut purpose = Purpose::from_item(guid(3), PurposeItem::Definition(text("Only")));
     assert!(purpose.set_definition(None).is_err());
     assert_eq!(purpose.items().len(), 1);
+}
+
+/// GeoReferencing is LOIN-owned, so it must be written, not refused. The
+/// fully populated state (CRS with vertical datum, datum descriptions, a model
+/// coordinate system with every optional decimal) exercises the whole subtree.
+#[test]
+fn georeferencing_is_written_and_validates() {
+    use openbim_loin::{
+        dt::Decimal, CoordinateReferenceSystem, CoordinateReferenceSystemKind, Datum,
+        DatumRegistryReference, GeoReferencing, ModelCoordinateSystem,
+    };
+    let decimal = |v: &str| -> Decimal { v.parse().expect("valid decimal") };
+    let mut registry = DatumRegistryReference::new(text("EPSG"));
+    registry.add_description(text("European Petroleum Survey Group"));
+    let mut crs = CoordinateReferenceSystem::new(
+        CoordinateReferenceSystemKind::ProjectedCrs,
+        Datum::new("ETRS89", registry.clone()),
+    );
+    crs.set_vertical_datum(Some(Datum::new("DHHN2016", registry)));
+    let mut system = ModelCoordinateSystem::new(
+        true,
+        decimal("32500000.5"),
+        decimal("5650000"),
+        decimal("120.25"),
+    );
+    system.x_axis_abscissa = Some(decimal("1"));
+    system.x_axis_ordinate = Some(decimal("0"));
+    system.unit_scale = Some(decimal("0.001"));
+    system.horizontal_scale = Some(decimal("0.9996"));
+    let mut geo = GeoReferencing::new();
+    geo.set_coordinate_reference_system(Some(crs));
+    geo.add_model_coordinate_system(system);
+
+    let model = model_with_geo(geo);
+    let document = LoinDocument::from_model(&model).expect("georeferencing is writable");
+    assert!(errors(&document).is_empty(), "{:#?}", errors(&document));
+    let xml = document
+        .to_xml_string(OutputNamespace::Preserve)
+        .expect("serializes");
+    for needle in [
+        "<GeoReferencing>",
+        "<Type>ProjectedCRS</Type>",
+        "<VerticalDatum>",
+        "<Description language=\"en\">European Petroleum Survey Group</Description>",
+        "<IsProjected>true</IsProjected>",
+        "<FirstCoordinate>32500000.5</FirstCoordinate>",
+        "<HorizontalScale>0.9996</HorizontalScale>",
+    ] {
+        assert!(xml.contains(needle), "missing {needle} in {xml}");
+    }
+    let reparsed = LoinDocument::parse(&xml).expect("authored georeferencing reparses");
+    assert!(errors(&reparsed).is_empty(), "{:#?}", errors(&reparsed));
+    assert_eq!(
+        xml,
+        reparsed
+            .to_xml_string(OutputNamespace::Preserve)
+            .expect("serializes")
+    );
+}
+
+/// The one DT-owned leaf inside GeoReferencing is still refused by name,
+/// rather than the whole subtree being blamed on openbim-dt.
+#[test]
+fn georeferencing_registry_reference_is_refused_as_dt_content() {
+    use openbim_loin::{
+        CoordinateReferenceSystem, CoordinateReferenceSystemKind, Datum, DatumRegistryReference,
+        GeoReferencing,
+    };
+    let reference: openbim_loin::dt::Reference =
+        openbim_loin::dt::Reference::new(None, Some("https://epsg.io/4258".parse().expect("uri")));
+    let mut registry = DatumRegistryReference::new(text("EPSG"));
+    registry.set_registry_reference(Some(reference));
+    let crs = CoordinateReferenceSystem::new(
+        CoordinateReferenceSystemKind::GeographicCrs,
+        Datum::new("ETRS89", registry),
+    );
+    let mut geo = GeoReferencing::new();
+    geo.set_coordinate_reference_system(Some(crs));
+    let model = model_with_geo(geo);
+    let error = LoinDocument::from_model(&model).expect_err("registry reference is DT-owned");
+    assert!(
+        matches!(
+            error,
+            AuthoringError::UnwritableDtContent {
+                element: "RegistryReference",
+                ..
+            }
+        ),
+        "{error:?}"
+    );
 }

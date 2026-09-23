@@ -122,6 +122,30 @@ MUTATIONS = [
         "authoring",
         "dt_owned_content_is_refused_by_name",
     ),
+    (
+        "geo-referencing-dropped",
+        "authoring.rs",
+        "        element = element.with_child(geo_referencing_element(geo)?);",
+        "        let _ = geo_referencing_element(geo)?;",
+        "authoring",
+        "georeferencing_is_written_and_validates",
+    ),
+    (
+        "crs-type-misspelled",
+        "authoring.rs",
+        '        CoordinateReferenceSystemKind::ProjectedCrs => "ProjectedCRS",',
+        '        CoordinateReferenceSystemKind::ProjectedCrs => "ProjectedCrs",',
+        "authoring",
+        "georeferencing_is_written_and_validates",
+    ),
+    (
+        "registry-reference-silently-dropped",
+        "authoring.rs",
+        '        return Err(unwritable("RegistryReference"));',
+        '        let _ = unwritable("RegistryReference");',
+        "authoring",
+        "georeferencing_registry_reference_is_refused_as_dt_content",
+    ),
 ]
 
 

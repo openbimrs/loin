@@ -17,14 +17,15 @@
 //! Authors needing that content today can parse a document and edit it through
 //! [`XmlElement::nodes_mut`], which preserves the DT subtrees verbatim.
 
-use openbim_dt::{Guid, MultiLanguageText, Reference};
+use openbim_dt::{Decimal, Guid, MultiLanguageText, Reference};
 
 use crate::{
     document::{LoinDocument, XmlAttribute, XmlElement},
     model::{
-        Actor, Document, DocumentFormat, Documentation, InformationDeliveryMilestone,
-        LevelOfInformationNeed, Prerequisites, Purpose, PurposeItem, Specification,
-        SpecificationPerObjectType,
+        Actor, CoordinateReferenceSystem, CoordinateReferenceSystemKind, Datum, Document,
+        DocumentFormat, Documentation, GeoReferencing, InformationDeliveryMilestone,
+        LevelOfInformationNeed, ModelCoordinateSystem, Prerequisites, Purpose, PurposeItem,
+        Specification, SpecificationPerObjectType,
     },
 };
 
@@ -88,11 +89,8 @@ fn specification_element(value: &Specification) -> Result<XmlElement, AuthoringE
     for per_object in value.per_object() {
         element = element.with_child(per_object_element(per_object)?);
     }
-    if value.geo_referencing().is_some() {
-        return Err(AuthoringError::UnwritableDtContent {
-            element: "GeoReferencing",
-            reason: "georeferencing authoring is not implemented yet",
-        });
+    if let Some(geo) = value.geo_referencing() {
+        element = element.with_child(geo_referencing_element(geo)?);
     }
     Ok(element)
 }
@@ -197,6 +195,82 @@ fn format_element(value: &DocumentFormat) -> Result<XmlElement, AuthoringError> 
         return Err(unwritable("FormatSpecification"));
     }
     Ok(element)
+}
+
+/// Writes `<GeoReferencing>`: the optional CRS, then every model coordinate
+/// system, matching the declared sequence. This subtree is LOIN-owned apart
+/// from `Type/RegistryReference`, which is refused as DT content.
+fn geo_referencing_element(value: &GeoReferencing) -> Result<XmlElement, AuthoringError> {
+    let mut element = XmlElement::new("GeoReferencing");
+    if let Some(crs) = value.coordinate_reference_system() {
+        element = element.with_child(crs_element(crs)?);
+    }
+    for system in value.model_coordinate_systems() {
+        element = element.with_child(model_coordinate_system_element(system));
+    }
+    Ok(element)
+}
+
+fn crs_element(value: &CoordinateReferenceSystem) -> Result<XmlElement, AuthoringError> {
+    let mut element = XmlElement::new("CoordinateReferenceSystem")
+        .with_child(XmlElement::new("Type").with_text(crs_kind_str(value.crs_type())))
+        .with_child(datum_element("Datum", &value.datum)?);
+    if let Some(vertical) = &value.vertical_datum {
+        element = element.with_child(datum_element("VerticalDatum", vertical)?);
+    }
+    Ok(element)
+}
+
+fn datum_element(name: &'static str, value: &Datum) -> Result<XmlElement, AuthoringError> {
+    let registry = value.datum_type();
+    if registry.registry_reference().is_some() {
+        return Err(unwritable("RegistryReference"));
+    }
+    let mut datum_type =
+        XmlElement::new("Type").with_child(multilingual_element("Name", registry.name()));
+    for description in registry.descriptions() {
+        datum_type = datum_type.with_child(multilingual_element("Description", description));
+    }
+    Ok(XmlElement::new(name)
+        .with_child(XmlElement::new("Name").with_text(value.name()))
+        .with_child(datum_type))
+}
+
+fn model_coordinate_system_element(value: &ModelCoordinateSystem) -> XmlElement {
+    let decimal = |name: &'static str, v: &Decimal| XmlElement::new(name).with_text(v.as_str());
+    let mut element = XmlElement::new("ModelCoordinateSystem")
+        .with_child(
+            XmlElement::new("IsProjected").with_text(if value.is_projected {
+                "true"
+            } else {
+                "false"
+            }),
+        )
+        .with_child(decimal("FirstCoordinate", &value.first_coordinate))
+        .with_child(decimal("SecondCoordinate", &value.second_coordinate))
+        .with_child(decimal("Height", &value.height));
+    for (name, optional) in [
+        ("XAxisAbscissa", &value.x_axis_abscissa),
+        ("XAxisOrdinate", &value.x_axis_ordinate),
+        ("UnitScale", &value.unit_scale),
+        ("HorizontalScale", &value.horizontal_scale),
+    ] {
+        if let Some(v) = optional {
+            element = element.with_child(decimal(name, v));
+        }
+    }
+    element
+}
+
+/// XSD spelling of the CRS kind. Exhaustive so a new variant fails to compile
+/// here rather than writing a value the schema rejects.
+const fn crs_kind_str(value: CoordinateReferenceSystemKind) -> &'static str {
+    match value {
+        CoordinateReferenceSystemKind::NotRequired => "NotRequired",
+        CoordinateReferenceSystemKind::ProjectedCrs => "ProjectedCRS",
+        CoordinateReferenceSystemKind::EngineeringCrs => "EngineeringCRS",
+        CoordinateReferenceSystemKind::GeographicCrs => "GeographicCRS",
+    }
 }
 
 /// Writes a LOIN multilingual element: text content plus `@language`.

@@ -1240,6 +1240,10 @@ impl DatumRegistryReference {
     pub fn add_description(&mut self, value: MultiLanguageText) {
         self.descriptions.push(value);
     }
+    #[must_use]
+    pub fn descriptions(&self) -> &[MultiLanguageText] {
+        &self.descriptions
+    }
     pub fn set_registry_reference(&mut self, value: Option<Reference>) {
         self.registry_reference = value;
     }
