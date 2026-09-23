@@ -45,3 +45,29 @@ emit something LOIN can embed. Resolve by reading both before designing.
 - [x] cheap fixes: geo writer, evidence ledger, lockfile check, lockstep
       release check, docs + ADRs 0001-0003 (gate running 2026-09-23)
 - [ ] phase 1 (dt codec) - next
+
+## Finding: DT subtree shape inside LOIN (2026-09-23)
+
+Outer element is LOIN-local, unqualified (<ObjectType>); its content is
+DT-qualified (<dt:Name/>, dt:GUID). dt's codec therefore takes the outer
+name as a parameter and owns only the content model.
+
+## Finding: dt owned model is a lossy subset (2026-09-23)
+
+ConceptType declares 15 child kinds + @about; owned Concept keeps 4.
+Narrowed: Definition 0..* -> 1; IsSubtypeOfRef 0..* -> Option.
+Property.DimensionRef 0..* -> Option. Type-specific content otherwise
+matches. ConceptType content is a repeating choice (order free), so
+typed values need no order; writers emit declared order.
+
+Decision: dt ROADMAP milestone 3 - complete owned contracts for all
+declared content, widen narrowed cardinalities, add a public dt::Element
+builder, and to_element/from_element per owned type.
+
+## Phase 1 delegated (2026-09-23)
+
+Brief: /home/friedrich/.cache/briefs/dt-codec-brief.md
+Worker branch: dt feature/owned-codec (.worktrees/codec), local only.
+Next for me: review diff + evidence, re-run gate, then push/release dt.
+
+- [x] phase 3 (enums single-sourced) - fb2ab3e, local; gate before push
