@@ -13,6 +13,6 @@ keywords = ["bim", "openbim", "ifc", "aec"]
 categories = ["data-structures"]
 
 [dependencies]
-openbim-dt = "0.2.1"
+openbim-dt = "0.3.0"
 quick-xml = "0.41.0"
 roxmltree = "0.21.1"

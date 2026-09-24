@@ -47,7 +47,7 @@ core / data templates / XML codec  <-  LOIN
 openbim facade  --------------------->+
 ```
 
-- LOIN consumes `openbim-dt 0.2` directly and re-exports it as
+- LOIN consumes `openbim-dt 0.3` directly and re-exports it as
   `openbim_loin::dt`. Imported GUID, language, multilingual-text, reference,
   `ConceptType`, object-type, property, group, quantity-kind, reference-document,
   unit, and dimension boundaries therefore keep one DT-owned Rust type identity.

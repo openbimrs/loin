@@ -56,7 +56,7 @@ deps = {dependency["name"]: dependency for dependency in canonical["dependencies
 # The core crate must never grow a wasm/JS dependency: browser bindings live in
 # openbim-loin-wasm precisely so native consumers never pay for wasm-bindgen.
 assert set(deps) == {"openbim-dt", "quick-xml", "roxmltree"}, deps
-assert deps["openbim-dt"]["req"] == "^0.2.1", deps["openbim-dt"]
+assert deps["openbim-dt"]["req"] == "^0.3.0", deps["openbim-dt"]
 assert deps["openbim-dt"].get("path") is None, deps["openbim-dt"]
 assert deps["quick-xml"]["req"] == "^0.41.0", deps["quick-xml"]
 assert deps["roxmltree"]["req"] == "^0.21.1", deps["roxmltree"]

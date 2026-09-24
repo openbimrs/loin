@@ -40,7 +40,7 @@ Namespace version handling is first-class and source namespaces remain observabl
 ## Completion log
 
 - Namespace constants and recognition helper are exercised by unit and doc tests.
-- `openbim-dt 0.2` owns every ISO 23387 value and complex-type contract exposed by
+- `openbim-dt 0.3` owns every ISO 23387 value and complex-type contract exposed by
   the LOIN domain subset; public API tests pin the DT type identities and
   compile-clean behavior mutations verify that imported values are retained.
 - Strict XML tests cover XML 1.1/DTD/entity/prefix/QName/duplicate-attribute
