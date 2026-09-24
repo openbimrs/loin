@@ -94,3 +94,20 @@ lives in LOIN; dt stays unaware of LOIN.
       tag v0.3.0 at 05ddf02. CI + docs green; registry build verified.
       Loin still pins ^0.2: bump to 0.3 is the first step of phase 4.
       Phase-1 worker stalled; the codec was written directly, not delegated.
+
+- [x] phase 4 (reader), full gate green (22/22 mutations killed),
+      2026-09-24:
+      ef52877 dt 0.3.0 bump; edccb9f reader; ab884b0 writer attribute fix;
+      ebaa78c mutation probes + docs.
+      from_document is strict: refuses extensions, unknown attributes,
+      stray text, order violations, bad lexical values, xsi:nil. DT
+      subtrees go through openbim-dt 0.3's codec, errors re-rooted.
+      Finding: the writer silently dropped 8 optional attributes
+      (milestone Date, actor names/affiliation, document type/form/content).
+      Fixed + pinned by a round-trip test and a mutation probe.
+      Local-only check: all 9 Annex C LOIN examples read (the 10th is a
+      dt:Library, not LOIN). Probe programs kept outside the repo in
+      ~/.cache/loin-probes/.
+- [ ] phase 5 (complete writer): per_object_element and every DT-owned
+      subtree via openbim-dt to_element, replacing UnwritableDtContent.
+      Then read -> write -> read identity on all Annex C examples.
