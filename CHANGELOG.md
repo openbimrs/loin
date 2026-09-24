@@ -9,6 +9,13 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `LevelOfInformationNeed::from_document` reads a parsed document into the
+  typed model. It is strict: content the model cannot represent is refused
+  with a `ReadError` (stable `ReadErrorKind`, a path in the validator's
+  format, and a detail message) instead of being dropped. ISO 23387 subtrees
+  are decoded by `openbim-dt` and their errors re-rooted under the LOIN path.
+- `Detail::shape_assembly()` and `Detail::shape_representation()`, the
+  missing getters for values that could be set but never read back.
 - `LoinDocument::from_model` now writes `GeoReferencing`: coordinate
   reference system, datums, and model coordinate systems.
   Previously it was refused with the DT-content error even though it is
@@ -18,8 +25,17 @@ and this project follows [Semantic Versioning](https://semver.org/).
   and `FromStr`, with `InvalidEnumerationValue` naming the enumeration and
   the rejected value.
 
+### Fixed
+
+- `LoinDocument::from_model` dropped the milestone `Date`, the actor
+  `firstName`/`middleName`/`lastName`/`affiliation`, and the document
+  `type`/`form`/`content` attributes silently. It now writes them. Found by
+  the new reader: a read, write, read round trip of a conforming document
+  lost the milestone date.
+
 ### Changed
 
+- Depends on `openbim-dt` 0.3.
 - The gate requires every evidence script's completion marker, so a
   skipped or no-op check fails instead of passing silently.
 - The gate rejects a `Cargo.lock` that resolves `openbim-dt` to a path.

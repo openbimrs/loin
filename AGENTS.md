@@ -2,11 +2,10 @@
 
 This repository owns the OpenBIM.rs implementation of ISO 7817-3 / EN 17412-3
 Level of Information Need, its short-name package alias, and its browser
-bindings. Parsing, validation, namespace migration and writing are implemented
-and gate-verified; see the README status table for exact scope. Keep claims
-backed by executable evidence: writing from the typed model covers LOIN-owned
-content only, and there is no document-to-model reader yet (see
-`PLAN-model-io.md`).
+bindings. Parsing, validation, namespace migration, writing and reading into
+the typed model are implemented and gate-verified; see the README status
+table for exact scope. Keep claims backed by executable evidence: writing from
+the typed model still covers LOIN-owned content only (see `PLAN-model-io.md`).
 
 ## Map
 

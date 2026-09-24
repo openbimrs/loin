@@ -30,6 +30,7 @@ described as complete W3C XML Schema validation.
 | Actor, milestone, format, required-document, threshold, detail, datum-registry, and georeferencing fields | Typed to the current XSD shape; imported values use canonical DT contracts directly |
 | Compile-time DT ownership and mutation gates | Implemented |
 | LOIN XML decoding/encoding | Strict bounded XML 1.0 codec implemented |
+| Reading into the typed model | `LevelOfInformationNeed::from_document`; strict, fails closed with a path-carrying `ReadError`; ISO 23387 subtrees decoded by `openbim-dt` |
 | Namespace migration | Explicit 2022 ↔ 2024 migration with collision detection and reports |
 | ISO 7817-3 validation | XSD-derived LOIN structural, cardinality, enumeration, and scalar checks; not complete XSD validation of imported DT complex types |
 | Lossless LOIN document round trips | Lossless-semantic syntax tree; not byte-for-byte |
@@ -61,6 +62,32 @@ let encoded = document.to_xml_string(OutputNamespace::Preserve)?;
 assert_eq!(LoinDocument::parse(&encoded)?.root(), document.root());
 # Ok::<(), Box<dyn std::error::Error>>(())
 ```
+
+## Reading documents
+
+`LevelOfInformationNeed::from_document` reads a parsed document into the typed
+model:
+
+```rust
+use openbim_loin::{LevelOfInformationNeed, LoinDocument};
+
+# fn demo(xml: &str) -> Result<(), Box<dyn std::error::Error>> {
+let document = LoinDocument::parse(xml)?;
+let model = LevelOfInformationNeed::from_document(&document)?;
+println!("{} specifications", model.specifications().len());
+# Ok(())
+# }
+```
+
+The reader is strict. Anything the model cannot represent (an extension
+element, an unknown attribute, character data in element content, an
+`xsi:nil` specification) is refused with a `ReadError` whose `kind()` is
+stable and whose `path()` uses the same format as validation diagnostics. It
+does not drop content silently. ISO 23387 subtrees (`ObjectType`, `Property`,
+units, references and so on) are decoded by `openbim-dt`, and its errors are
+re-rooted under the LOIN path. Reading does not replace `validate()`: use the
+validator for diagnostics and the reader for typed access. Lossless editing,
+including extensions and comments, stays on the document tree.
 
 ## Writing documents
 
