@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic fixture written for the reader tests. It reproduces no ISO
+     example: every name, GUID and value is invented. It populates every
+     LOIN-owned element and attribute, plus ISO 23387 subtrees. -->
+<loin:LevelOfInformationNeed xmlns:loin="https://iso.org/2024/LOIN" xmlns:dt="https://standards.iso.org/iso/23387/ed-2/en/">
+  <Specification name="Synthetic maximal" dt:GUID="10000000-0000-4000-8000-000000000001">
+    <Prerequisites dt:GUID="10000000-0000-4000-8000-000000000002">
+      <Purpose dt:GUID="10000000-0000-4000-8000-000000000003">
+        <Description language="en">Described first</Description>
+        <Name language="en">Coordination</Name>
+        <Definition language="en">Purpose definition</Definition>
+        <ReferenceDocument dt:referenceURI="urn:synthetic:purpose-doc"/>
+        <Language>de-CH</Language>
+        <Region>Europe</Region>
+        <DictionaryRef dt:GUID="10000000-0000-4000-8000-0000000000a1"/>
+      </Purpose>
+      <InformationDeliveryMilestone dt:GUID="10000000-0000-4000-8000-000000000004" Date="2026-03-04T05:06:07Z">
+        <Name language="en">Gate 2</Name>
+        <Description language="en">Milestone description</Description>
+        <ReferenceDocument dt:referenceURI="urn:synthetic:milestone-doc"/>
+      </InformationDeliveryMilestone>
+      <ProvidingActor dt:GUID="10000000-0000-4000-8000-000000000005" firstName="Ada" middleName="B." lastName="Author" affiliation="Synthetic Works">
+        <Role language="en">Author</Role>
+        <Description language="en">Provides the model</Description>
+        <EMailAddress>ada@example.org</EMailAddress>
+      </ProvidingActor>
+      <ReceivingActor dt:GUID="10000000-0000-4000-8000-000000000006">
+        <Role language="en">Reviewer</Role>
+      </ReceivingActor>
+    </Prerequisites>
+    <SpecificationPerObjectType dt:GUID="10000000-0000-4000-8000-000000000007" dateOfCreation="2026-01-01T00:00:00Z">
+      <dt:Name language="en">Spec for a wall</dt:Name>
+      <dt:Definition language="en">Per-object specification</dt:Definition>
+      <ObjectType dt:GUID="10000000-0000-4000-8000-000000000008" dateOfCreation="2026-01-01T00:00:00Z">
+        <dt:Name language="en">Wall</dt:Name>
+        <dt:Definition language="en">A vertical element</dt:Definition>
+        <dt:IsSubtypeOfRef dt:GUID="10000000-0000-4000-8000-0000000000a2"/>
+      </ObjectType>
+      <AlphanumericalInformation dt:GUID="10000000-0000-4000-8000-000000000009">
+        <Property dt:GUID="10000000-0000-4000-8000-00000000000a" dateOfCreation="2026-01-01T00:00:00Z">
+          <dt:Name language="en">Width</dt:Name>
+          <dt:Definition language="en">Width of the wall</dt:Definition>
+          <dt:DataType name="REAL">
+            <dt:PossibleValues>
+              <dt:ValueList language="en">
+                <dt:Value order="1">0.3</dt:Value>
+                <dt:Value order="2">0.7</dt:Value>
+              </dt:ValueList>
+            </dt:PossibleValues>
+          </dt:DataType>
+          <dt:DimensionRef dt:referenceURI="urn:synthetic:dimension:length"/>
+          <dt:UnitRef dt:referenceURI="urn:synthetic:unit:metre"/>
+        </Property>
+        <GroupsOfProperties>
+          <GroupOfProperties dt:GUID="10000000-0000-4000-8000-00000000000b" dateOfCreation="2026-01-01T00:00:00Z">
+            <dt:Name language="en">Dimensions</dt:Name>
+            <dt:Definition language="en">Size properties</dt:Definition>
+            <dt:IsSubtypeOfRef dt:GUID="10000000-0000-4000-8000-0000000000a3"/>
+            <dt:HasPropertyRef dt:GUID="10000000-0000-4000-8000-00000000000a"/>
+          </GroupOfProperties>
+          <GroupOfPropertiesRef dt:GUID="10000000-0000-4000-8000-0000000000a4"/>
+        </GroupsOfProperties>
+      </AlphanumericalInformation>
+      <Documentation dt:GUID="10000000-0000-4000-8000-00000000000c">
+        <Document dt:GUID="10000000-0000-4000-8000-00000000000d" type="Drawing" form="Digital" content="Plan view">
+          <Name language="en">Plan</Name>
+          <ReferenceDocument dt:referenceURI="urn:synthetic:document-class"/>
+          <Description language="en">A plan drawing</Description>
+          <Format>
+            <FormatName language="en">PDF</FormatName>
+            <FormatVersion language="en">1.7</FormatVersion>
+            <FormatSpecification dt:referenceURI="urn:synthetic:format:pdf"/>
+          </Format>
+        </Document>
+      </Documentation>
+      <GeometricalInformation dt:GUID="10000000-0000-4000-8000-00000000000e" placeholder="false">
+        <Detail>
+          <Dictionary dt:referenceURI="urn:synthetic:detail-dictionary"/>
+          <ShapeAssembly>SingleObjectSingularShape</ShapeAssembly>
+          <ShapeRepresentation>SingleBoundingPrimitive</ShapeRepresentation>
+          <ShapeInfluence>
+            <InsideGeometry>NoInsideGeometry</InsideGeometry>
+            <Connections>ConnectionsAsPartOfShape</Connections>
+            <Openings>SeparateShapes</Openings>
+            <OperatingAndClearanceZones>NoZones</OperatingAndClearanceZones>
+            <Features>NotRequired</Features>
+          </ShapeInfluence>
+        </Detail>
+        <Dimensionality>3D</Dimensionality>
+        <Appearance>SingularMaterial</Appearance>
+        <ParametricBehaviour>Requested</ParametricBehaviour>
+        <Location>
+          <RelativeOrAbsolute>Relative</RelativeOrAbsolute>
+          <ReferenceObject>Grid A1</ReferenceObject>
+        </Location>
+      </GeometricalInformation>
+    </SpecificationPerObjectType>
+    <GeoReferencing>
+      <CoordinateReferenceSystem>
+        <Type>ProjectedCRS</Type>
+        <Datum>
+          <Name>Synthetic datum</Name>
+          <Type>
+            <Name language="en">Registry</Name>
+            <Description language="en">A made-up registry</Description>
+            <RegistryReference dt:referenceURI="urn:synthetic:registry"/>
+          </Type>
+        </Datum>
+        <VerticalDatum>
+          <Name>Synthetic height</Name>
+          <Type>
+            <Name language="en">Heights</Name>
+          </Type>
+        </VerticalDatum>
+      </CoordinateReferenceSystem>
+      <ModelCoordinateSystem>
+        <IsProjected>true</IsProjected>
+        <FirstCoordinate>2600000.5</FirstCoordinate>
+        <SecondCoordinate>1200000.25</SecondCoordinate>
+        <Height>400</Height>
+        <XAxisAbscissa>1</XAxisAbscissa>
+        <XAxisOrdinate>0</XAxisOrdinate>
+        <UnitScale>0.001</UnitScale>
+        <HorizontalScale>1</HorizontalScale>
+      </ModelCoordinateSystem>
+    </GeoReferencing>
+  </Specification>
+</loin:LevelOfInformationNeed>

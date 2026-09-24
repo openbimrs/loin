@@ -45,9 +45,11 @@ mod authoring;
 mod document;
 mod model;
 mod parser;
+mod reader;
 mod validation;
 
 pub use authoring::AuthoringError;
+pub use reader::{ReadError, ReadErrorKind};
 
 /// Why ISO 23387-owned complex content cannot be written by this crate.
 ///

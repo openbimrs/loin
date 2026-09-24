@@ -1267,6 +1267,14 @@ impl Detail {
         self.shape_influence = value;
     }
     #[must_use]
+    pub const fn shape_assembly(&self) -> Option<ShapeAssembly> {
+        self.shape_assembly
+    }
+    #[must_use]
+    pub const fn shape_representation(&self) -> Option<ShapeRepresentation> {
+        self.shape_representation
+    }
+    #[must_use]
     pub const fn shape_influence(&self) -> Option<&ShapeInfluence> {
         self.shape_influence.as_ref()
     }
