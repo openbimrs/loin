@@ -130,8 +130,11 @@ fn purpose_element(value: &Purpose) -> Result<XmlElement, AuthoringError> {
 
 fn milestone_element(value: &InformationDeliveryMilestone) -> Result<XmlElement, AuthoringError> {
     let mut element = XmlElement::new("InformationDeliveryMilestone")
-        .with_attribute(guid_attribute(value.guid()))
-        .with_child(multilingual_element("Name", value.name()));
+        .with_attribute(guid_attribute(value.guid()));
+    if let Some(date) = value.date() {
+        element = element.with_attribute(XmlAttribute::new("Date", date.as_str()));
+    }
+    element = element.with_child(multilingual_element("Name", value.name()));
     for description in value.descriptions() {
         element = element.with_child(multilingual_element("Description", description));
     }
@@ -144,7 +147,18 @@ fn milestone_element(value: &InformationDeliveryMilestone) -> Result<XmlElement,
 /// Writes an actor under the caller-supplied element name; the schema declares
 /// `ProvidingActor` and `ReceivingActor` with one shared content model.
 fn actor_element(name: &'static str, value: &Actor) -> XmlElement {
-    let mut element = XmlElement::new(name)
+    let mut element = XmlElement::new(name);
+    for (attribute, text) in [
+        ("firstName", value.first_name()),
+        ("middleName", value.middle_name()),
+        ("lastName", value.last_name()),
+        ("affiliation", value.affiliation()),
+    ] {
+        if let Some(text) = text {
+            element = element.with_attribute(XmlAttribute::new(attribute, text));
+        }
+    }
+    element = element
         .with_attribute(guid_attribute(value.guid()))
         .with_child(multilingual_element("Role", value.role()));
     if let Some(description) = value.description() {
@@ -174,7 +188,17 @@ fn document_element(value: &Document) -> Result<XmlElement, AuthoringError> {
     if !value.reference_documents().is_empty() {
         return Err(unwritable("ReferenceDocument"));
     }
-    let mut element = XmlElement::new("Document")
+    let mut element = XmlElement::new("Document");
+    for (attribute, text) in [
+        ("type", value.document_type()),
+        ("form", value.form()),
+        ("content", value.content()),
+    ] {
+        if let Some(text) = text {
+            element = element.with_attribute(XmlAttribute::new(attribute, text));
+        }
+    }
+    element = element
         .with_attribute(guid_attribute(value.guid()))
         .with_child(multilingual_element("Name", value.name()));
     for description in value.descriptions() {

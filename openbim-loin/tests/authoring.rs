@@ -413,3 +413,36 @@ fn georeferencing_registry_reference_is_refused_as_dt_content() {
         "{error:?}"
     );
 }
+
+/// The writer used to drop the milestone `Date` and the actor name
+/// attributes silently. Found by the phase-4 reader: a read -> write -> read
+/// round trip of an official example lost the milestone date.
+#[test]
+fn optional_attributes_survive_write_then_read() {
+    let mut milestone = InformationDeliveryMilestone::new(guid(4), text("Gate"));
+    milestone.set_date(Some(created()));
+    let mut providing = Actor::new(guid(5), text("Author"));
+    providing.set_first_name(Some("Ada".into()));
+    providing.set_middle_name(Some("B.".into()));
+    providing.set_last_name(Some("Author".into()));
+    providing.set_affiliation(Some("Synthetic Works".into()));
+    let prerequisites = Prerequisites::new(
+        guid(2),
+        Purpose::new(guid(3), text("Coordination")),
+        milestone,
+        providing,
+        Actor::new(guid(6), text("Reviewer")),
+    );
+    let model =
+        LevelOfInformationNeed::new(Specification::new(guid(1), "Synthetic", prerequisites));
+
+    let document = LoinDocument::from_model(&model).expect("model is writable");
+    assert!(errors(&document).is_empty(), "{:#?}", errors(&document));
+    let xml = document
+        .to_xml_string(OutputNamespace::Preserve)
+        .expect("serializes");
+    let reread =
+        LevelOfInformationNeed::from_document(&LoinDocument::parse(&xml).expect("reparses"))
+            .expect("reads back");
+    assert_eq!(reread, model, "{xml}");
+}
