@@ -14,6 +14,12 @@ jobs:
   release:
     name: Publish release and npm package
     runs-on: ubuntu-latest
+    # Only `v*` tags may deploy to `release` (admins cannot bypass), and npm
+    # trusts exactly this workflow file and environment.
+    environment: release
+    permissions:
+      contents: write # gh release create
+      id-token: write # npm trusted publishing (OIDC) and provenance
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -26,9 +32,9 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '20'
-          # Deliberately no registry-url here: setup-node writes an .npmrc
-          # with an authToken line whenever it's set, and that line is blank
-          # when NPM_TOKEN is unset — better to fail loudly below than 404.
+          # Deliberately no registry-url here: setup-node would write an
+          # .npmrc authToken line, which takes precedence over the OIDC
+          # trusted-publishing exchange the stage step relies on.
       - name: Resolve wasm-bindgen version
         id: wb
         run: echo "version=$(python3 scripts/wasm-bindgen-version.py)" >> "$GITHUB_OUTPUT"
@@ -66,32 +72,17 @@ jobs:
             --notes "$notes" \
             dist/*.tgz
 
-      # npm stage publish never needs 2FA, so the token you already have
-      # ("read and write, stage only") is the right one for this — it just
-      # cannot run npm publish directly, by design.
-      #
-      # npm stage publish requires the package to already exist on the
-      # registry, so this cannot perform the very first release — that
-      # needs one manual `npm publish --access public` from a maintainer.
-      #
-      # The registry is configured here rather than via setup-node's
-      # registry-url, which writes an authToken line even when the token is
-      # empty (see the Install Node step).
-      #
-      # `npm stage` is a recent addition; setup-node's bundled npm predates
-      # it, so npm is upgraded explicitly to guarantee it's available.
+      # npm trusted publishing (OIDC) replaces the long-lived NPM_TOKEN. The
+      # trusted publisher on npmjs.com leaves "Allow npm publish" unchecked,
+      # so this workflow can only STAGE a version; a maintainer still
+      # approves it with 2FA. npm stage publish requires the package to
+      # exist already, and trusted publishing needs npm >= 11.5.1, hence the
+      # explicit upgrade (setup-node's bundled npm is older).
       - name: Stage npm package for approval
         id: stage
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           npm install -g npm@latest
           npm --version
-          if [ -z "${NODE_AUTH_TOKEN}" ]; then
-            echo "NPM_TOKEN is not set; cannot stage a publish." >&2
-            exit 1
-          fi
-          npm config set //registry.npmjs.org/:_authToken="${NODE_AUTH_TOKEN}"
           npm stage publish --access public | tee stage-output.txt
         working-directory: dist/package
 
