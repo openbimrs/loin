@@ -1,6 +1,6 @@
 # 0002 — Staged npm publishing and lockstep release versions
 
-- **Status:** Accepted
+- **Status:** Accepted; npm publishing superseded by [0004](0004-npm-trusted-publishing-from-an-environment.md)
 - **Date:** 2026-09-22
 - **Deciders:** Friedrich Schrödter
 - **Supersedes:** —
