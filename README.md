@@ -192,15 +192,13 @@ Rust crates are still published manually with `cargo publish`; the workflow
 covers the npm package and the GitHub release only.
 
 The npm package is `@openbim/loin`, published under the `openbim` npm
-organisation. The release workflow stages the package with `npm stage
-publish` instead of publishing directly: staging never needs 2FA, and
-a maintainer approves the staged version separately with
-`npm stage approve <stage-id>` (2FA) or on npmjs.com. `NPM_TOKEN` only
-needs write access — it does not need to bypass 2FA.
+organisation through trusted publishing (OIDC): the publish job runs in the
+`npmjs.com` environment, whose required reviewer approves every publish, and
+npm trusts exactly `release.yml` and that environment. There is no npm token
+([ADR 0004](docs/adr/0004-npm-trusted-publishing-from-an-environment.md)).
 
-`npm stage publish` requires the package to already exist on the
-registry, so it cannot perform the first ever release. That needs one
-manual `npm publish --access public` from `dist/package/` first.
+Trusted publishing cannot create a package, so the first version was
+published by hand with `npm publish --access public` from `dist/package/`.
 
 ## Contributing
 

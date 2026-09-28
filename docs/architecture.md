@@ -120,5 +120,7 @@ The superproject pin is the compatibility declaration and rollback point.
 Versions are lockstep: one `vX.Y.Z` tag means every crate and the npm manifest
 carry `X.Y.Z` ([ADR 0002](adr/0002-staged-npm-publish-and-lockstep-releases.md)).
 The tag workflow re-runs the gate on the tagged commit, cuts the GitHub release
-from `CHANGELOG.md`, and stages the npm package for manual 2FA approval. Rust
+from `CHANGELOG.md`, and publishes the npm package through trusted publishing
+from the reviewer-gated `npmjs.com` environment
+([ADR 0004](adr/0004-npm-trusted-publishing-from-an-environment.md)). Rust
 crates are published with `cargo publish` in dependency order.

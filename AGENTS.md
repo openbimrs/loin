@@ -18,7 +18,8 @@ the typed model still covers LOIN-owned content only (see `PLAN-model-io.md`).
 - `scripts/gate.sh` — complete local/CI verification gate; every evidence
   script must print its completion marker (`scripts/check-evidence.py`)
 - `.github/workflows/release.yml` — `v*` tag: lockstep version check, gate,
-  GitHub release, then `npm stage publish` awaiting 2FA approval
+  GitHub release, then npm trusted publishing from the `npmjs.com`
+  environment (reviewer-gated, no token)
 - `docs/adr/` — accepted decisions; read before re-proposing an alternative
 - `CHANGELOG.md` — user-visible changes using Keep a Changelog
 - `references/` — ignored local standards corpus; never publish implicitly
