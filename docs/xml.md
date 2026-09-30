@@ -42,7 +42,10 @@ The syntax tree retains:
 
 The guarantee is **semantic**, not byte-for-byte. Quote choice, entity spelling,
 and equivalent escaping may be normalized by the writer. Repeated
-parse/write/parse cycles preserve the owned syntax-tree semantics.
+parse/write/parse cycles preserve the owned syntax-tree semantics. Documents
+already written in the writer's spelling (double quotes, minimal escaping), such
+as every file in `openbim-loin/examples/`, come back byte-identical; the tests
+pin that for the shipped examples only.
 
 ## Namespace migration
 
@@ -101,5 +104,11 @@ claimed as schema-backed for that draft.
 `openbim-loin -> openbim-dt` remains the dependency direction and DT continues to
 own those contracts.
 
+The checked grammar is published read-only as `openbim_loin::grammar` and as
+`openbim-loin/loin-grammar.json`; see
+[ADR 0005](adr/0005-published-grammar-derived-from-validator-tables.md) for what
+is derived from these tables and what is checked against them.
+
 No ISO/CEN schema, annex example, or other restricted standards artifact is
-vendored or packaged. Public tests use synthetic documents.
+vendored or packaged. Public tests use synthetic documents, and the samples in
+`openbim-loin/examples/` are original content.
