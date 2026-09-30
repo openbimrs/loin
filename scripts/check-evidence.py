@@ -18,12 +18,15 @@ REQUIRED = [
     ("test-schema-shape.sh", "all typed-model mutations killed"),
     ("test-xml-capability.py", "XML capability mutations killed"),
     ("test-authoring-mutations.py", "leaked=0"),
+    ("examples/check_examples.rs", "examples OK:"),
+    ("check-grammar-artifact.py", "grammar artifact OK:"),
 ]
 
 WASM = [
     "wasm package OK:",
     "structured errors OK:",
     "migration OK:",
+    "grammar OK:",
     "npm manifest OK:",
 ]
 WASM_SKIP = "skipping wasm package test:"

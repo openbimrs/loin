@@ -356,6 +356,30 @@ def main() -> None:
             ],
             "xml_document::preserves_literal_comment_content_without_entity_escaping",
         ),
+        (
+            # The published grammar is derived from the validator tables: a
+            # table change must make the committed artifact stale.
+            "grammar-artifact-drift",
+            [
+                (
+                    "openbim-loin/src/validation.rs",
+                    '    ChildRule::optional("GeoReferencing"),',
+                    '    ChildRule::many("GeoReferencing", 0),',
+                )
+            ],
+            "grammar::artifact_matches_validator_tables",
+        ),
+        (
+            "grammar-enumeration-drift",
+            [
+                (
+                    "openbim-loin/src/validation.rs",
+                    '        (Some("GeometricalInformation"), "Appearance") => Some(model::Appearance::VALUES),',
+                    '        (Some("GeometricalInformation"), "Appearance") => None,',
+                )
+            ],
+            "grammar::artifact_matches_validator_tables",
+        ),
     ]
     for name, edits, test in mutations:
         mutate(name, edits, test)

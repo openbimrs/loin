@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sample LOIN document for openbim-loin. Original content: every name, GUID,
+     address and value is invented. It uses only LOIN-owned content, so it
+     also round-trips through the typed model: read, then write again with
+     LoinDocument::from_model. -->
+<loin:LevelOfInformationNeed xmlns:loin="https://iso.org/2024/LOIN" xmlns:dt="https://standards.iso.org/iso/23387/ed-2/en/">
+  <Specification name="Site survey handover" dt:GUID="7a3e9c10-2d4b-4c5e-9f60-718293a4b501">
+    <Prerequisites dt:GUID="7a3e9c10-2d4b-4c5e-9f60-718293a4b502">
+      <Purpose dt:GUID="7a3e9c10-2d4b-4c5e-9f60-718293a4b503">
+        <Name language="en">Model placement</Name>
+        <Description language="en">Place every discipline model in the same site coordinates.</Description>
+        <Language>en</Language>
+      </Purpose>
+      <InformationDeliveryMilestone dt:GUID="7a3e9c10-2d4b-4c5e-9f60-718293a4b504" Date="2026-10-15T12:00:00Z">
+        <Name language="en">Survey issued</Name>
+      </InformationDeliveryMilestone>
+      <ProvidingActor dt:GUID="7a3e9c10-2d4b-4c5e-9f60-718293a4b505" affiliation="Example Surveying">
+        <Role language="en">Land surveyor</Role>
+        <EMailAddress>survey@surveying.example</EMailAddress>
+      </ProvidingActor>
+      <ReceivingActor dt:GUID="7a3e9c10-2d4b-4c5e-9f60-718293a4b506">
+        <Role language="en">Information manager</Role>
+        <Description language="en">Federates the discipline models.</Description>
+      </ReceivingActor>
+    </Prerequisites>
+    <GeoReferencing>
+      <CoordinateReferenceSystem>
+        <Type>ProjectedCRS</Type>
+        <Datum>
+          <Name>Example national grid</Name>
+          <Type>
+            <Name language="en">Example geodetic registry</Name>
+          </Type>
+        </Datum>
+      </CoordinateReferenceSystem>
+      <ModelCoordinateSystem>
+        <IsProjected>true</IsProjected>
+        <FirstCoordinate>512300</FirstCoordinate>
+        <SecondCoordinate>5623400</SecondCoordinate>
+        <Height>210</Height>
+      </ModelCoordinateSystem>
+    </GeoReferencing>
+  </Specification>
+</loin:LevelOfInformationNeed>

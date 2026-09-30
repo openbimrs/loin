@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sample LOIN document for openbim-loin. Original content: every name, GUID,
+     address and value is invented for illustration and reproduces no ISO or
+     CEN example. It states what an architect must deliver about internal
+     partitions and doors of an office fit-out at the design freeze. -->
+<loin:LevelOfInformationNeed xmlns:loin="https://iso.org/2024/LOIN" xmlns:dt="https://standards.iso.org/iso/23387/ed-2/en/">
+  <Specification name="Office fit-out, level 3: design freeze" dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a01">
+    <Prerequisites dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a02">
+      <Purpose dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a03">
+        <Name language="en">Cost planning</Name>
+        <Name language="de">Kostenplanung</Name>
+        <Definition language="en">Quantities and specifications sufficient to price the fit-out package.</Definition>
+        <ReferenceDocument dt:referenceURI="https://example.org/fit-out/employer-information-requirements"/>
+        <Description language="en">Used by the cost consultant for the second cost estimate.</Description>
+        <Language>en-GB</Language>
+        <Region>Europe</Region>
+        <DictionaryRef dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a90"/>
+      </Purpose>
+      <InformationDeliveryMilestone dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a04" Date="2026-11-30T17:00:00+01:00">
+        <Name language="en">Design freeze</Name>
+        <Description language="en">Last exchange before the tender documents are issued.</Description>
+        <ReferenceDocument dt:referenceURI="https://example.org/fit-out/programme#design-freeze"/>
+      </InformationDeliveryMilestone>
+      <ProvidingActor dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a05" firstName="Mira" middleName="A." lastName="Okafor" affiliation="Example Architects">
+        <Role language="en">Lead designer</Role>
+        <Description language="en">Authors the architectural model.</Description>
+        <EMailAddress>mira.okafor@architects.example</EMailAddress>
+      </ProvidingActor>
+      <ReceivingActor dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a06" firstName="Jonas" middleName="P." lastName="Lindqvist" affiliation="Example Cost Consultants">
+        <Role language="en">Cost consultant</Role>
+        <Description language="en">Prices the package from the model and schedules.</Description>
+        <EMailAddress>j.lindqvist@cost.example</EMailAddress>
+      </ReceivingActor>
+    </Prerequisites>
+    <SpecificationPerObjectType dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a10" dt:about="https://example.org/fit-out/loin/partition" dateOfCreation="2026-09-01T09:00:00Z">
+      <dt:Name language="en">Partition walls for cost planning</dt:Name>
+      <dt:Definition language="en">Information required about non-load-bearing internal partitions.</dt:Definition>
+      <ObjectType dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a11" dateOfCreation="2026-09-01T09:00:00Z">
+        <dt:Name language="en">Partition wall</dt:Name>
+        <dt:Definition language="en">A non-load-bearing wall that divides internal space.</dt:Definition>
+        <dt:IsSubtypeOfRef dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a91"/>
+      </ObjectType>
+      <AlphanumericalInformation dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a12">
+        <Property dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a13" dateOfCreation="2026-09-01T09:00:00Z">
+          <dt:Name language="en">Acoustic rating</dt:Name>
+          <dt:Definition language="en">Sound reduction the partition must achieve, in decibels.</dt:Definition>
+          <dt:DataType name="REAL">
+            <dt:PossibleValues>
+              <dt:ValueList language="en">
+                <dt:Value order="1">38</dt:Value>
+                <dt:Value order="2">45</dt:Value>
+                <dt:Value order="3">52</dt:Value>
+              </dt:ValueList>
+            </dt:PossibleValues>
+          </dt:DataType>
+          <dt:UnitRef dt:referenceURI="https://example.org/units/decibel"/>
+        </Property>
+        <Property dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a14" dateOfCreation="2026-09-01T09:00:00Z">
+          <dt:Name language="en">Fire resistance</dt:Name>
+          <dt:Definition language="en">Period for which the partition must resist fire, in minutes.</dt:Definition>
+          <dt:DataType name="INTEGER"/>
+          <dt:DimensionRef dt:referenceURI="https://example.org/dimensions/time"/>
+          <dt:UnitRef dt:referenceURI="https://example.org/units/minute"/>
+        </Property>
+        <QuantityKind dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a30" dateOfCreation="2026-09-01T09:00:00Z">
+          <dt:Name language="en">Partition height</dt:Name>
+          <dt:Definition language="en">Height of a partition from finished floor to its head.</dt:Definition>
+          <dt:DimensionRef dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a31"/>
+        </QuantityKind>
+        <GroupsOfProperties>
+          <GroupOfProperties dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a15" dateOfCreation="2026-09-01T09:00:00Z">
+            <dt:Name language="en">Performance</dt:Name>
+            <dt:Definition language="en">Properties that drive the partition specification.</dt:Definition>
+            <dt:IsSubtypeOfRef dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a92"/>
+            <dt:HasPropertyRef dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a13"/>
+            <dt:HasPropertyRef dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a14"/>
+          </GroupOfProperties>
+          <GroupOfPropertiesRef dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a93"/>
+        </GroupsOfProperties>
+        <ReferenceDocument dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a32" dateOfCreation="2026-09-01T09:00:00Z">
+          <dt:Name language="en">Example acoustic design guide</dt:Name>
+          <dt:Language>en</dt:Language>
+          <dt:Publisher>Example Acoustics Society</dt:Publisher>
+          <dt:URI>https://example.org/guides/acoustic-design</dt:URI>
+        </ReferenceDocument>
+        <Dimension dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a31" dateOfCreation="2026-09-01T09:00:00Z">
+          <dt:Name language="en">Length</dt:Name>
+          <dt:DimensionExponentForAmountOfSubstance>0</dt:DimensionExponentForAmountOfSubstance>
+          <dt:DimensionExponentForElectricCurrent>0</dt:DimensionExponentForElectricCurrent>
+          <dt:DimensionExponentForLength>1</dt:DimensionExponentForLength>
+          <dt:DimensionExponentForLuminousIntensity>0</dt:DimensionExponentForLuminousIntensity>
+          <dt:DimensionExponentForMass>0</dt:DimensionExponentForMass>
+          <dt:DimensionExponentForThermodynamicTemperature>0</dt:DimensionExponentForThermodynamicTemperature>
+          <dt:DimensionExponentForTime>0</dt:DimensionExponentForTime>
+        </Dimension>
+        <Unit dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a33" dateOfCreation="2026-09-01T09:00:00Z">
+          <dt:Name language="en">Millimetre</dt:Name>
+          <dt:Symbol language="en">mm</dt:Symbol>
+          <dt:DimensionRef dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a31"/>
+          <dt:Scale>LINEAR</dt:Scale>
+          <dt:Base>TEN</dt:Base>
+          <dt:Coefficient>1/1000</dt:Coefficient>
+          <dt:Offset>0</dt:Offset>
+        </Unit>
+      </AlphanumericalInformation>
+      <Documentation dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a16">
+        <Document dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a17" type="Specification" form="Digital" content="Partition types schedule">
+          <Name language="en">Partition types schedule</Name>
+          <ReferenceDocument dt:referenceURI="https://example.org/fit-out/schedule-template"/>
+          <Description language="en">One row per partition type with build-up and performance.</Description>
+          <Format>
+            <FormatName language="en">PDF</FormatName>
+            <FormatVersion language="en">2.0</FormatVersion>
+            <FormatSpecification dt:referenceURI="https://example.org/formats/pdf-2.0"/>
+          </Format>
+        </Document>
+      </Documentation>
+      <GeometricalInformation dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a18" placeholder="false">
+        <Detail>
+          <Dictionary dt:referenceURI="https://example.org/fit-out/geometry-dictionary"/>
+          <ShapeAssembly>SingleObjectSingularShape</ShapeAssembly>
+          <ShapeRepresentation>OuterShellAsSingularShape</ShapeRepresentation>
+          <ShapeInfluence>
+            <InsideGeometry>NoInsideGeometry</InsideGeometry>
+            <Connections>NoConnections</Connections>
+            <Openings>OpeningsAsPartOfShape</Openings>
+            <OperatingAndClearanceZones>NotRequired</OperatingAndClearanceZones>
+            <Features>NoFeatures</Features>
+            <ThresholdDimension>
+              <Threshold>50</Threshold>
+              <Unit dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a33" dateOfCreation="2026-09-01T09:00:00Z">
+                <dt:Name language="en">Millimetre</dt:Name>
+                <dt:Symbol language="en">mm</dt:Symbol>
+                <dt:DimensionRef dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a31"/>
+                <dt:Scale>LINEAR</dt:Scale>
+                <dt:Base>TEN</dt:Base>
+                <dt:Coefficient>1/1000</dt:Coefficient>
+                <dt:Offset>0</dt:Offset>
+              </Unit>
+              <Definition language="en">Openings and recesses smaller than this are not modelled.</Definition>
+            </ThresholdDimension>
+          </ShapeInfluence>
+        </Detail>
+        <Dimensionality>3D</Dimensionality>
+        <Appearance>SymbolicByMapping</Appearance>
+        <ParametricBehaviour>NotRequested</ParametricBehaviour>
+        <Location>
+          <RelativeOrAbsolute>Relative</RelativeOrAbsolute>
+          <ReferenceObject>Level 3 structural grid</ReferenceObject>
+        </Location>
+      </GeometricalInformation>
+    </SpecificationPerObjectType>
+    <SpecificationPerObjectType dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a20" dateOfCreation="2026-09-01T09:00:00Z">
+      <dt:Name language="en">Internal doors for cost planning</dt:Name>
+      <ObjectType dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a21" dateOfCreation="2026-09-01T09:00:00Z">
+        <dt:Name language="en">Internal door</dt:Name>
+        <dt:Definition language="en">A door set within an internal partition.</dt:Definition>
+      </ObjectType>
+      <Documentation dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a22">
+        <Document dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a23" type="Schedule">
+          <Name language="en">Door schedule</Name>
+          <Format>
+            <FormatName language="en">XLSX</FormatName>
+            <FormatVersion language="en">ISO/IEC 29500</FormatVersion>
+          </Format>
+        </Document>
+      </Documentation>
+      <GeometricalInformation dt:GUID="5f0c1a2e-3b4d-4e6f-8a9b-0c1d2e3f4a24">
+        <Detail>
+          <ShapeAssembly>SingleObjectMultipleShapes</ShapeAssembly>
+          <ShapeRepresentation>SingleBoundingPrimitive</ShapeRepresentation>
+          <ShapeInfluence>
+            <OperatingAndClearanceZones>ZonesAsPartOfShape</OperatingAndClearanceZones>
+          </ShapeInfluence>
+        </Detail>
+        <Dimensionality>3D</Dimensionality>
+        <ParametricBehaviour>Requested</ParametricBehaviour>
+      </GeometricalInformation>
+    </SpecificationPerObjectType>
+    <GeoReferencing>
+      <CoordinateReferenceSystem>
+        <Type>ProjectedCRS</Type>
+        <Datum>
+          <Name>Example national grid</Name>
+          <Type>
+            <Name language="en">Example geodetic registry</Name>
+            <Description language="en">Registry that publishes the example datum.</Description>
+            <RegistryReference dt:referenceURI="https://example.org/registry/datum/1001"/>
+          </Type>
+        </Datum>
+        <VerticalDatum>
+          <Name>Example mean sea level</Name>
+          <Type>
+            <Name language="en">Example geodetic registry</Name>
+          </Type>
+        </VerticalDatum>
+      </CoordinateReferenceSystem>
+      <ModelCoordinateSystem>
+        <IsProjected>true</IsProjected>
+        <FirstCoordinate>512340.125</FirstCoordinate>
+        <SecondCoordinate>5623410.5</SecondCoordinate>
+        <Height>212.4</Height>
+        <XAxisAbscissa>0.9998</XAxisAbscissa>
+        <XAxisOrdinate>0.0175</XAxisOrdinate>
+        <UnitScale>0.001</UnitScale>
+        <HorizontalScale>1</HorizontalScale>
+      </ModelCoordinateSystem>
+    </GeoReferencing>
+  </Specification>
+</loin:LevelOfInformationNeed>
