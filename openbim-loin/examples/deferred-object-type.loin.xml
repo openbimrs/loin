@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sample LOIN document for openbim-loin. Original content: every name and
+     GUID is invented. The second per-object specification is nilled with
+     xsi:nil: the requirement is announced but its content is deferred. The
+     validator accepts this; the typed-model reader refuses it by design,
+     because the model has no nilled specification. -->
+<loin:LevelOfInformationNeed xmlns:loin="https://iso.org/2024/LOIN" xmlns:dt="https://standards.iso.org/iso/23387/ed-2/en/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Specification name="Facade package: early design" dt:GUID="3c9d0e21-6f7a-4b8c-9d0e-1f2a3b4c5d01">
+    <Prerequisites dt:GUID="3c9d0e21-6f7a-4b8c-9d0e-1f2a3b4c5d02">
+      <Purpose dt:GUID="3c9d0e21-6f7a-4b8c-9d0e-1f2a3b4c5d03">
+        <Name language="en">Design coordination</Name>
+      </Purpose>
+      <InformationDeliveryMilestone dt:GUID="3c9d0e21-6f7a-4b8c-9d0e-1f2a3b4c5d04">
+        <Name language="en">Concept design review</Name>
+      </InformationDeliveryMilestone>
+      <ProvidingActor dt:GUID="3c9d0e21-6f7a-4b8c-9d0e-1f2a3b4c5d05">
+        <Role language="en">Facade engineer</Role>
+      </ProvidingActor>
+      <ReceivingActor dt:GUID="3c9d0e21-6f7a-4b8c-9d0e-1f2a3b4c5d06">
+        <Role language="en">Lead designer</Role>
+      </ReceivingActor>
+    </Prerequisites>
+    <SpecificationPerObjectType dt:GUID="3c9d0e21-6f7a-4b8c-9d0e-1f2a3b4c5d10" dateOfCreation="2026-09-15T08:00:00Z">
+      <dt:Name language="en">Curtain wall panels</dt:Name>
+      <ObjectType dt:GUID="3c9d0e21-6f7a-4b8c-9d0e-1f2a3b4c5d11" dateOfCreation="2026-09-15T08:00:00Z">
+        <dt:Name language="en">Curtain wall panel</dt:Name>
+      </ObjectType>
+      <GeometricalInformation dt:GUID="3c9d0e21-6f7a-4b8c-9d0e-1f2a3b4c5d12" placeholder="true">
+        <Dimensionality>2D</Dimensionality>
+        <Appearance>NoAppearanceInformation</Appearance>
+      </GeometricalInformation>
+    </SpecificationPerObjectType>
+    <SpecificationPerObjectType dt:GUID="3c9d0e21-6f7a-4b8c-9d0e-1f2a3b4c5d20" dateOfCreation="2026-09-15T08:00:00Z" xsi:nil="true"/>
+  </Specification>
+</loin:LevelOfInformationNeed>

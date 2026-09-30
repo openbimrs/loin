@@ -322,3 +322,13 @@ pub fn migrate(xml: &str, target: &str) -> Result<JsValue, JsValue> {
     };
     serde_wasm_bindgen::to_value(&value).map_err(JsValue::from)
 }
+
+/// The LOIN grammar `validate` enforces, as the JSON document `openbim-loin`
+/// publishes (`openbim-loin/loin-grammar.json`, format version 1).
+///
+/// Returned as text so the bytes are exactly the published artifact; call
+/// `JSON.parse` on it. Elements are keyed by `(parent, name)`.
+#[wasm_bindgen]
+pub fn grammar() -> String {
+    openbim_loin::grammar::to_json()
+}

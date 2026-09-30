@@ -12,7 +12,11 @@ The crate provides:
   content, comments, processing instructions, CDATA, and represented controls;
 - explicit migration between the known 2022 and 2024 draft namespaces;
 - XSD-derived ISO 7817-3 structural and lexical diagnostics;
-- semantic parse/write/parse stability without claiming byte-for-byte identity.
+- semantic parse/write/parse stability without claiming byte-for-byte identity;
+- a read-only, machine-readable view of the enforced grammar
+  (`openbim_loin::grammar`, and `loin-grammar.json` in this package);
+- original sample documents in `examples/`, with a `check_examples` program
+  that parses, validates and round-trips them or your own files.
 
 ```rust
 use openbim_loin::{LoinDocument, NamespaceVersion, OutputNamespace};
