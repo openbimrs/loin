@@ -21,6 +21,9 @@ and this project follows [Semantic Versioning](https://semver.org/).
   Previously it was refused with the DT-content error even though it is
   LOIN-owned. Only the DT-owned `RegistryReference` is still refused.
 - `DatumRegistryReference::descriptions()`, the missing getter.
+- `Specification::set_name` and `Purpose::set_name`, the last missing setters
+  from the API papercuts in #7 and #8. `Purpose::set_name` replaces the first
+  `Name` branch in place and refuses to empty the choice.
 - Every ISO 7817-3 enumeration type gets `VALUES`, `as_str()`, `Display`
   and `FromStr`, with `InvalidEnumerationValue` naming the enumeration and
   the rejected value.
