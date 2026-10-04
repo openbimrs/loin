@@ -1,8 +1,8 @@
 //! Reading the typed model from a parsed LOIN document.
 //!
 //! [`LevelOfInformationNeed::from_document`] turns a [`LoinDocument`] into the
-//! typed model. It is the inverse of [`LoinDocument::from_model`] for every
-//! value the writer can produce.
+//! typed model. It is the inverse of [`LoinDocument::from_model`]: reading a
+//! written model returns that model.
 //!
 //! # Contract
 //!

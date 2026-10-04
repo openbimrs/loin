@@ -11,15 +11,15 @@
 //! 2. `validate()` reports no diagnostics;
 //! 3. writing with `OutputNamespace::Preserve` reproduces the input byte for byte;
 //! 4. it reads into the typed model (a documented refusal is reported, not failed);
-//! 5. when the model holds only LOIN-owned content, writing it back with
-//!    `LoinDocument::from_model` validates and reads back to the same model.
+//! 5. writing it back with `LoinDocument::from_model` validates and reads
+//!    back to the same model.
 //!
 //! Exits non-zero when a check fails.
 
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use openbim_loin::{AuthoringError, LevelOfInformationNeed, LoinDocument, OutputNamespace};
+use openbim_loin::{LevelOfInformationNeed, LoinDocument, OutputNamespace};
 
 fn main() -> ExitCode {
     let mut paths: Vec<PathBuf> = std::env::args_os().skip(1).map(PathBuf::from).collect();
@@ -99,26 +99,20 @@ fn check(path: &Path) -> Result<(), String> {
         model.specifications().len()
     );
 
-    match LoinDocument::from_model(&model) {
-        Ok(authored) => {
-            let diagnostics = authored.validate();
-            if !diagnostics.is_empty() {
-                return Err(format!(
-                    "document written from the model has {} diagnostics",
-                    diagnostics.len()
-                ));
-            }
-            let reread = LevelOfInformationNeed::from_document(&authored)
-                .map_err(|error| format!("written document does not read back: {error}"))?;
-            if reread != model {
-                return Err("model -> document -> model is not the identity".to_owned());
-            }
-            println!("  model -> document -> model: identical");
-        }
-        Err(AuthoringError::UnwritableDtContent { element, .. }) => {
-            println!("  model -> document: not yet writable ({element} is ISO 23387-owned)");
-        }
-        Err(error) => return Err(format!("from_model: {error}")),
+    let authored =
+        LoinDocument::from_model(&model).map_err(|error| format!("from_model: {error}"))?;
+    let diagnostics = authored.validate();
+    if !diagnostics.is_empty() {
+        return Err(format!(
+            "document written from the model has {} diagnostics",
+            diagnostics.len()
+        ));
     }
+    let reread = LevelOfInformationNeed::from_document(&authored)
+        .map_err(|error| format!("written document does not read back: {error}"))?;
+    if reread != model {
+        return Err("model -> document -> model is not the identity".to_owned());
+    }
+    println!("  model -> document -> model: identical");
     Ok(())
 }

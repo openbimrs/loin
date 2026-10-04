@@ -57,9 +57,14 @@ mod validation;
 pub use authoring::AuthoringError;
 pub use reader::{ReadError, ReadErrorKind};
 
-/// Why ISO 23387-owned complex content cannot be written by this crate.
+/// Why ISO 23387-owned complex content could not be written by this crate.
 ///
-/// Exposed so consumers can match on the reason rather than on message text.
+/// Historical: since `openbim-dt` 0.3, [`LoinDocument::from_model`] writes
+/// every ISO 23387 subtree, so no error carries this reason any more.
+#[deprecated(
+    since = "0.4.0",
+    note = "never used: ISO 23387 content is written through openbim-dt's codec"
+)]
 pub const DT_UNWRITABLE_REASON: &str = "openbim-dt 0.2 exposes no serializer for its owned types and dt::Element cannot be built downstream";
 pub use document::{
     LoinDocument, MigrationError, MigrationReport, NamespaceVersion, OutputNamespace, WriteError,

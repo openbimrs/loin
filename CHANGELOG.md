@@ -9,6 +9,18 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `LoinDocument::from_model` writes every value of the typed model
+  (#1). `SpecificationPerObjectType` (its concept, `ObjectType`,
+  `AlphanumericalInformation`, `Documentation` and `GeometricalInformation`)
+  and every reference (`ReferenceDocument`, `DictionaryRef`,
+  `FormatSpecification`, `GroupOfPropertiesRef`, `Dictionary`,
+  `RegistryReference`) used to be refused with
+  `AuthoringError::UnwritableDtContent`. ISO 23387 subtrees are now encoded by
+  `openbim-dt` 0.3's codec and embedded under their LOIN element names, the
+  inverse of how `from_document` decodes them. Writing then reading returns
+  the same model; tests pin this for the maximal reader fixture, for every
+  DT-owned type, and for the complete `office-fit-out` example, which is now
+  written back as well.
 - `openbim-loin/examples/`: three original sample LOIN documents (a complete
   office fit-out, a LOIN-only georeferencing handover, and a nilled
   per-object specification) and a `check_examples` Cargo example that parses,
@@ -38,7 +50,7 @@ and this project follows [Semantic Versioning](https://semver.org/).
 - `LoinDocument::from_model` now writes `GeoReferencing`: coordinate
   reference system, datums, and model coordinate systems.
   Previously it was refused with the DT-content error even though it is
-  LOIN-owned. Only the DT-owned `RegistryReference` is still refused.
+  LOIN-owned.
 - `DatumRegistryReference::descriptions()`, the missing getter.
 - `Specification::set_name` and `Purpose::set_name`, the last missing setters
   from the API papercuts in #7 and #8. `Purpose::set_name` replaces the first
@@ -46,6 +58,11 @@ and this project follows [Semantic Versioning](https://semver.org/).
 - Every ISO 7817-3 enumeration type gets `VALUES`, `as_str()`, `Display`
   and `FromStr`, with `InvalidEnumerationValue` naming the enumeration and
   the rejected value.
+
+### Deprecated
+
+- `AuthoringError::UnwritableDtContent` and `DT_UNWRITABLE_REASON`: nothing
+  returns them any more. They remain so existing `match` arms compile.
 
 ### Fixed
 

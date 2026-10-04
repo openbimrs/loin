@@ -1,9 +1,9 @@
 //! Writing LOIN documents from the typed model (issue #1).
 
 use openbim_loin::{
-    dt::{Concept, DateTime, Guid, MultiLanguageText},
-    Actor, AuthoringError, InformationDeliveryMilestone, LevelOfInformationNeed, LoinDocument,
-    OutputNamespace, Prerequisites, Purpose, PurposeItem, Severity, Specification,
+    dt::{Concept, DateTime, Guid, MultiLanguageText, ObjectType, Subject},
+    Actor, InformationDeliveryMilestone, LevelOfInformationNeed, LoinDocument, OutputNamespace,
+    Prerequisites, Purpose, PurposeItem, Severity, Specification, SpecificationPerObjectType,
 };
 
 fn guid(seed: u8) -> Guid {
@@ -41,6 +41,35 @@ fn model_with_geo(geo: openbim_loin::GeoReferencing) -> LevelOfInformationNeed {
     let mut specification = Specification::new(guid(1), "Synthetic", prerequisites);
     specification.set_geo_referencing(Some(geo));
     LevelOfInformationNeed::new(specification)
+}
+
+/// A per-object requirement for a wall: the concept plus its object type.
+fn per_object() -> SpecificationPerObjectType {
+    let mut subject = Subject::new(Concept::new(
+        guid(8),
+        created(),
+        text("Wall"),
+        text("A wall"),
+    ));
+    subject.add_is_subtype_of_ref(openbim_loin::dt::Reference::new(Some(guid(9)), None));
+    SpecificationPerObjectType::new(
+        Concept::new(
+            guid(7),
+            created(),
+            text("Wall spec"),
+            text("Per-object spec"),
+        ),
+        ObjectType::new(subject),
+    )
+}
+
+/// `minimal_model` with one per-object requirement.
+fn model_with_per_object(value: SpecificationPerObjectType) -> LevelOfInformationNeed {
+    let mut model = minimal_model();
+    let mut specification = model.specifications()[0].clone();
+    specification.add_per_object(value);
+    model = LevelOfInformationNeed::new(specification);
+    model
 }
 
 fn errors(document: &LoinDocument) -> Vec<openbim_loin::Diagnostic> {
@@ -167,41 +196,119 @@ fn optional_actor_children_are_written_in_order() {
 
 /// ISO 23387-owned content is refused with a named, actionable error rather
 /// than silently dropped.
+/// `SpecificationPerObjectType` used to be refused because `<ObjectType>` is
+/// ISO 23387-owned. It is now written through openbim-dt's codec, with the
+/// concept's `dt:` content leading the LOIN extension.
 #[test]
-fn dt_owned_content_is_refused_by_name() {
-    let mut specification = Specification::new(
-        guid(1),
-        "Synthetic",
-        Prerequisites::new(
-            guid(2),
-            Purpose::new(guid(3), text("Coordination")),
-            InformationDeliveryMilestone::new(guid(4), text("Gate")),
-            Actor::new(guid(5), text("Author")),
-            Actor::new(guid(6), text("Reviewer")),
-        ),
+fn per_object_content_is_written_through_openbim_dt() {
+    let model = model_with_per_object(per_object());
+    let document = LoinDocument::from_model(&model).expect("per-object content is writable");
+    assert!(errors(&document).is_empty(), "{:#?}", errors(&document));
+    let xml = document
+        .to_xml_string(OutputNamespace::Preserve)
+        .expect("serializes");
+    // The LOIN element name is kept; DT owns only the content.
+    assert!(xml.contains("<ObjectType "), "{xml}");
+    assert!(!xml.contains("<dt:ObjectType"), "{xml}");
+    assert!(
+        xml.find("<dt:Name").expect("concept name") < xml.find("<ObjectType").expect("object"),
+        "concept content must precede ObjectType: {xml}"
     );
-    specification.add_per_object(openbim_loin::SpecificationPerObjectType::new(
-        Concept::new(guid(7), created(), text("Wall"), text("A wall")),
-        openbim_loin::dt::ObjectType::new(openbim_loin::dt::Subject::new(Concept::new(
-            guid(8),
-            created(),
-            text("Wall"),
-            text("A wall"),
-        ))),
+    let reread =
+        LevelOfInformationNeed::from_document(&LoinDocument::parse(&xml).expect("reparses"))
+            .expect("reads back");
+    assert_eq!(reread, model, "{xml}");
+}
+
+/// Every ISO 23387-owned type the model embeds, plus the `xs:double`
+/// specials, survives write -> read unchanged and validates.
+#[test]
+fn every_dt_owned_type_round_trips() {
+    use openbim_loin::{
+        dt::{Dimension, Language, QuantityKind, Reference, ReferenceDocument, Unit},
+        AlphanumericalInformation, Detail, GeometricalInformation, ShapeInfluence,
+        ThresholdDimension,
+    };
+    let reference = |n: u8| Reference::new(Some(guid(n)), None);
+    let concept = |n: u8, name: &str| Concept::new(guid(n), created(), text(name), text(name));
+    let unit = |n: u8| {
+        Unit::new(
+            concept(n, "metre"),
+            reference(9),
+            "linear".into(),
+            "1".into(),
+            "1".parse().expect("rational"),
+            "0".parse().expect("rational"),
+        )
+    };
+
+    let mut alpha = AlphanumericalInformation::new(guid(1));
+    alpha.add_quantity_kind(QuantityKind::new(concept(2, "length"), reference(9)));
+    let mut document = ReferenceDocument::new(
+        concept(3, "Synthetic standard"),
+        "en".parse::<Language>().expect("language"),
+    );
+    document.set_author(Some("Synthetic author".into()));
+    alpha.add_reference_document(document);
+    alpha.add_dimension(Dimension::new(
+        concept(4, "L"),
+        ["0", "0", "1", "0", "0", "0", "0"].map(|e| e.parse().expect("decimal")),
     ));
-    let model = LevelOfInformationNeed::new(specification);
-    let error = LoinDocument::from_model(&model).expect_err("DT content is not writable");
-    assert_eq!(
-        error,
-        AuthoringError::UnwritableDtContent {
-            element: "ObjectType",
-            reason: openbim_loin::DT_UNWRITABLE_REASON,
-        }
-    );
-    // The message must name the element and point at the workaround.
-    let message = error.to_string();
-    assert!(message.contains("ObjectType"), "{message}");
-    assert!(message.contains("nodes_mut"), "{message}");
+    alpha.add_unit(unit(5));
+
+    let mut influence = ShapeInfluence::new();
+    influence.threshold_dimension = Some(ThresholdDimension::new(
+        f64::INFINITY,
+        unit(6),
+        text("Unbounded"),
+    ));
+    let mut detail = Detail::new();
+    detail.set_shape_influence(Some(influence));
+    let mut geometry = GeometricalInformation::new(guid(7));
+    geometry.set_placeholder(Some(true));
+    geometry.set_detail(Some(detail));
+
+    let mut per_object = per_object();
+    per_object.set_alphanumerical_information(Some(alpha));
+    per_object.set_geometrical_information(Some(geometry));
+    let model = model_with_per_object(per_object);
+
+    let document = LoinDocument::from_model(&model).expect("every DT type is writable");
+    assert!(errors(&document).is_empty(), "{:#?}", errors(&document));
+    let xml = document
+        .to_xml_string(OutputNamespace::Preserve)
+        .expect("serializes");
+    assert!(xml.contains("<Threshold>INF</Threshold>"), "{xml}");
+    let reread =
+        LevelOfInformationNeed::from_document(&LoinDocument::parse(&xml).expect("reparses"))
+            .expect("reads back");
+    assert_eq!(reread, model, "{xml}");
+}
+
+/// Phase 5 acceptance: the maximal reader fixture, which populates every
+/// LOIN-owned element and attribute, reads, writes and reads back to the same
+/// model, the written document validates, and re-writing is byte-stable.
+#[test]
+fn maximal_fixture_reads_writes_and_reads_back_identically() {
+    let source =
+        LoinDocument::parse(include_str!("fixtures/reader-maximal.xml")).expect("fixture parses");
+    let model = LevelOfInformationNeed::from_document(&source).expect("fixture reads");
+
+    let written = LoinDocument::from_model(&model).expect("fixture model is writable");
+    assert!(errors(&written).is_empty(), "{:#?}", errors(&written));
+    let xml = written
+        .to_xml_string(OutputNamespace::Preserve)
+        .expect("serializes");
+    let reread =
+        LevelOfInformationNeed::from_document(&LoinDocument::parse(&xml).expect("reparses"))
+            .expect("reads back");
+    assert_eq!(reread, model, "{xml}");
+
+    let rewritten = LoinDocument::from_model(&reread)
+        .expect("writable")
+        .to_xml_string(OutputNamespace::Preserve)
+        .expect("serializes");
+    assert_eq!(rewritten, xml, "writing must be deterministic");
 }
 
 /// The escape hatch issue #1 asks for: edit a parsed document in place.
@@ -382,10 +489,10 @@ fn georeferencing_is_written_and_validates() {
     );
 }
 
-/// The one DT-owned leaf inside GeoReferencing is still refused by name,
-/// rather than the whole subtree being blamed on openbim-dt.
+/// `Type/RegistryReference` inside GeoReferencing used to be refused as DT
+/// content. It is a plain `dt:ReferenceType`, now written and read back.
 #[test]
-fn georeferencing_registry_reference_is_refused_as_dt_content() {
+fn georeferencing_registry_reference_is_written() {
     use openbim_loin::{
         CoordinateReferenceSystem, CoordinateReferenceSystemKind, Datum, DatumRegistryReference,
         GeoReferencing,
@@ -401,17 +508,19 @@ fn georeferencing_registry_reference_is_refused_as_dt_content() {
     let mut geo = GeoReferencing::new();
     geo.set_coordinate_reference_system(Some(crs));
     let model = model_with_geo(geo);
-    let error = LoinDocument::from_model(&model).expect_err("registry reference is DT-owned");
+    let document = LoinDocument::from_model(&model).expect("registry reference is writable");
+    assert!(errors(&document).is_empty(), "{:#?}", errors(&document));
+    let xml = document
+        .to_xml_string(OutputNamespace::Preserve)
+        .expect("serializes");
     assert!(
-        matches!(
-            error,
-            AuthoringError::UnwritableDtContent {
-                element: "RegistryReference",
-                ..
-            }
-        ),
-        "{error:?}"
+        xml.contains(r#"<RegistryReference dt:referenceURI="https://epsg.io/4258"/>"#),
+        "{xml}"
     );
+    let reread =
+        LevelOfInformationNeed::from_document(&LoinDocument::parse(&xml).expect("reparses"))
+            .expect("reads back");
+    assert_eq!(reread, model, "{xml}");
 }
 
 /// The writer used to drop the milestone `Date` and the actor name

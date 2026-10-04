@@ -8,22 +8,19 @@ use std::collections::BTreeSet;
 use std::path::Path;
 
 use openbim_loin::{
-    dt, grammar, AuthoringError, LevelOfInformationNeed, LoinDocument, OutputNamespace,
-    ReadErrorKind, XmlElement,
+    dt, grammar, LevelOfInformationNeed, LoinDocument, OutputNamespace, ReadErrorKind, XmlElement,
 };
 
 /// What the typed-model stages must do for one example.
 enum Model {
     /// Reads, and writing it back from the model is the identity.
     WritesBack,
-    /// Reads, but `from_model` refuses ISO 23387-owned content (PLAN-model-io phase 5).
-    ReadsOnly,
     /// The reader refuses it with this kind, by design.
     Refused(ReadErrorKind),
 }
 
 const EXAMPLES: &[(&str, Model)] = &[
-    ("office-fit-out.loin.xml", Model::ReadsOnly),
+    ("office-fit-out.loin.xml", Model::WritesBack),
     ("site-georeferencing.loin.xml", Model::WritesBack),
     (
         "deferred-object-type.loin.xml",
@@ -85,16 +82,6 @@ fn examples_meet_their_typed_model_contract() {
             Model::Refused(kind) => {
                 let refusal = read.expect_err(name);
                 assert_eq!(refusal.kind(), *kind, "{name}");
-            }
-            Model::ReadsOnly => {
-                let model = read.unwrap_or_else(|e| panic!("{name}: {e}"));
-                assert!(
-                    matches!(
-                        LoinDocument::from_model(&model),
-                        Err(AuthoringError::UnwritableDtContent { .. })
-                    ),
-                    "{name}: now writable; promote it to WritesBack"
-                );
             }
             Model::WritesBack => {
                 let model = read.unwrap_or_else(|e| panic!("{name}: {e}"));
