@@ -108,6 +108,12 @@ lives in LOIN; dt stays unaware of LOIN.
       Local-only check: all 9 Annex C LOIN examples read (the 10th is a
       dt:Library, not LOIN). Probe programs kept outside the repo in
       ~/.cache/loin-probes/.
-- [ ] phase 5 (complete writer): per_object_element and every DT-owned
-      subtree via openbim-dt to_element, replacing UnwritableDtContent.
-      Then read -> write -> read identity on all Annex C examples.
+- [x] phase 5 (complete writer), 2026-10-04: per_object_element,
+      alphanumerical, geometry and every reference written; DT subtrees
+      via openbim-dt to_element re-rooted under the LOIN name (embed_dt).
+      UnwritableDtContent / DT_UNWRITABLE_REASON deprecated, never returned.
+      read -> write -> read identity + byte-stable re-write pinned on
+      tests/fixtures/reader-maximal.xml; every DT-owned type and xs:double
+      specials pinned separately; 6 new writer mutations killed (27/27).
+      Not done here: identity on the Annex C examples (local-only, not
+      redistributable) - run the ~/.cache/loin-probes/ probe locally.

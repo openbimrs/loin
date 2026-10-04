@@ -31,6 +31,7 @@ described as complete W3C XML Schema validation.
 | Compile-time DT ownership and mutation gates | Implemented |
 | LOIN XML decoding/encoding | Strict bounded XML 1.0 codec implemented |
 | Reading into the typed model | `LevelOfInformationNeed::from_document`; strict, fails closed with a path-carrying `ReadError`; ISO 23387 subtrees decoded by `openbim-dt` |
+| Writing from the typed model | `LoinDocument::from_model` writes every model value; ISO 23387 subtrees encoded by `openbim-dt`; model → document → model is identity |
 | Namespace migration | Explicit 2022 ↔ 2024 migration with collision detection and reports |
 | ISO 7817-3 validation | XSD-derived LOIN structural, cardinality, enumeration, and scalar checks; not complete XSD validation of imported DT complex types |
 | Lossless LOIN document round trips | Lossless-semantic syntax tree; not byte-for-byte |
@@ -108,15 +109,16 @@ assert!(document.validate().is_empty());
 Children are written in the order the schema declares, and the output reparses
 and revalidates unchanged.
 
-**Scope.** LOIN-owned content is written in full. ISO 23387-owned complex
-content (`ObjectType`, `Property`, `QuantityKind`, `Dimension`, `Unit`,
-`ReferenceDocument`, `GroupOfProperties`) is **not** writable here: the
-`openbim-dt` 0.2 owned types expose no serializer and `dt::Element` cannot be
-constructed downstream. Those cases return
-`AuthoringError::UnwritableDtContent`, naming the element, instead of emitting
-invented ISO 23387 syntax. To edit such documents today, parse one and mutate
-it through `XmlElement::nodes_mut` / `attributes_mut`, which keeps the DT
-subtrees verbatim.
+**Scope.** Every value the typed model holds is written. ISO 23387-owned
+subtrees (`ObjectType`, `Property`, `QuantityKind`, `Dimension`, `Unit`,
+`ReferenceDocument`, `GroupOfProperties`, and the concept a
+`SpecificationPerObjectType` extends) are encoded by `openbim-dt`'s own codec and
+embedded under their LOIN element names, so this crate never restates the ISO
+23387 grammar. Reading the written document back with
+`LevelOfInformationNeed::from_document` returns the same model. Like the reader,
+the writer is a semantic projection: to keep comments, prefixes or extensions
+from a parsed source, edit the tree through `XmlElement::nodes_mut` /
+`attributes_mut` instead.
 
 `openbim-loin::dt` re-exports the exact `openbim-dt` contract version consumed by
 this release. Do not create lookalike GUID, text, reference, or property types in
