@@ -10,6 +10,11 @@ the typed model still covers LOIN-owned content only (see `PLAN-model-io.md`).
 ## Map
 
 - `openbim-loin/` — canonical implementation and all public definitions
+- `openbim-loin/examples/` — original sample documents and `check_examples`;
+  each file is listed in `tests/examples.rs` with its typed-model contract
+- `openbim-loin/loin-grammar.json` — published grammar rendered from
+  `src/grammar.rs`; regenerate with `LOIN_BLESS_GRAMMAR=1 cargo test -p
+  openbim-loin --test grammar` and review the diff (ADR 0005)
 - `loin/` — pure re-export alias; no implementation or independent types
 - `openbim-loin-wasm/` — wasm-bindgen browser/Node bindings; the only crate
   that may depend on wasm/JS crates. `npm/package.json` is the `@openbim/loin`

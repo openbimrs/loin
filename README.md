@@ -34,7 +34,9 @@ described as complete W3C XML Schema validation.
 | Writing from the typed model | `LoinDocument::from_model` writes every model value; ISO 23387 subtrees encoded by `openbim-dt`; model → document → model is identity |
 | Namespace migration | Explicit 2022 ↔ 2024 migration with collision detection and reports |
 | ISO 7817-3 validation | XSD-derived LOIN structural, cardinality, enumeration, and scalar checks; not complete XSD validation of imported DT complex types |
-| Lossless LOIN document round trips | Lossless-semantic syntax tree; not byte-for-byte |
+| Lossless LOIN document round trips | Lossless-semantic syntax tree; byte-for-byte not guaranteed in general, but tested byte-identical for every shipped example |
+| Sample documents | [`openbim-loin/examples/`](openbim-loin/examples/): three original documents, tested to validate with zero diagnostics and round-trip byte for byte; see [Examples](#examples) |
+| Published grammar | `openbim_loin::grammar` API, [`loin-grammar.json`](openbim-loin/loin-grammar.json) and the npm `grammar()` export; structure and enumerations derived from the validator tables, attributes and scalar types checked against the validator ([ADR 0005](docs/adr/0005-published-grammar-derived-from-validator-tables.md)) |
 
 ## Crates
 
@@ -62,6 +64,57 @@ let document = LoinDocument::parse(xml)?;
 let encoded = document.to_xml_string(OutputNamespace::Preserve)?;
 assert_eq!(LoinDocument::parse(&encoded)?.root(), document.root());
 # Ok::<(), Box<dyn std::error::Error>>(())
+```
+
+## Examples
+
+[`openbim-loin/examples/`](openbim-loin/examples/) holds original sample
+documents (invented names and values; no ISO or CEN material):
+
+| File | Shows | Typed model |
+| --- | --- | --- |
+| `office-fit-out.loin.xml` | The complete document: every element the grammar describes, ISO 23387 subtrees, georeferencing | Reads, and `from_model` writes it back to the same model |
+| `site-georeferencing.loin.xml` | LOIN-owned content only | Reads, and `from_model` writes it back to the same model |
+| `deferred-object-type.loin.xml` | A nilled (`xsi:nil`) per-object specification | Validates; the reader refuses it by design (`NilledElement`) |
+
+Every example parses, validates with zero diagnostics and writes back byte for
+byte with `OutputNamespace::Preserve` (`openbim-loin/tests/examples.rs`). Run
+the same checks on the examples or on your own files:
+
+```bash
+cargo run -p openbim-loin --example check_examples
+cargo run -p openbim-loin --example check_examples -- path/to/document.xml
+```
+
+## Grammar
+
+The grammar `validate()` enforces is published for tools that do not want to
+read validator source:
+
+- Rust: `openbim_loin::grammar` (`elements()`, `element(parent, name)`,
+  `to_json()`);
+- JSON: [`openbim-loin/loin-grammar.json`](openbim-loin/loin-grammar.json),
+  shipped in the crate (format version 1);
+- JavaScript: `grammar()` in `@openbim/loin`, returning the same JSON text.
+
+Elements are keyed by their parent's local name and their own, as the
+validator keys them. Each entry gives the content model (`sequence`, repeating
+`choice`, `simple` with a value type, or `imported` ISO 23387 content),
+children with `min`/`max` in declared order, and attributes with namespace,
+exact name, `required` and value type. The element structure and enumeration
+values are derived from the validator's tables, so they cannot drift; the
+attribute and scalar-type declarations are checked against the validator by
+exhaustive tests. The JSON is committed and a test fails if it differs from
+what the tables produce. Imported ISO 23387 content is out of scope. See
+[ADR 0005](docs/adr/0005-published-grammar-derived-from-validator-tables.md).
+
+```rust
+use openbim_loin::grammar::{self, AttributeNamespace};
+
+let per_object = grammar::element(Some("Specification"), "SpecificationPerObjectType").unwrap();
+let created = per_object.attributes().iter().find(|a| a.name() == "dateOfCreation").unwrap();
+assert_eq!(created.namespace(), AttributeNamespace::Unqualified);
+assert!(created.is_required());
 ```
 
 ## Reading documents

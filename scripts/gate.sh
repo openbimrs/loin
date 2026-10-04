@@ -85,6 +85,10 @@ run_evidence ./scripts/test-dt-boundary.sh
 run_evidence ./scripts/test-schema-shape.sh
 run_evidence python3 scripts/test-xml-capability.py
 run_evidence python3 scripts/test-authoring-mutations.py
+# The shipped examples must parse, validate clean and round-trip, and the
+# published grammar alone must be enough to check them.
+run_evidence cargo "${cargo_args[@]}" run -q -p openbim-loin --example check_examples --locked
+run_evidence python3 scripts/check-grammar-artifact.py
 run_evidence ./scripts/test-wasm-package.sh
 python3 scripts/check-evidence.py "$evidence"
 python3 scripts/check-lockfile-sources.py

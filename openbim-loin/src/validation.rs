@@ -91,14 +91,37 @@ impl fmt::Display for Diagnostic {
 
 impl std::error::Error for Diagnostic {}
 
-#[derive(Clone, Copy)]
-struct ChildRule {
+/// One declared child of a complex LOIN element: its local name and how often
+/// it may occur.
+///
+/// These are the validator's own tables, exposed read-only through
+/// [`crate::grammar`]. [`ChildRule::max`] is `None` for an unbounded particle.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ChildRule {
     name: &'static str,
     min: usize,
     max: Option<usize>,
 }
 
 impl ChildRule {
+    /// Local name of the child element. Schema-local children are unqualified.
+    #[must_use]
+    pub const fn name(&self) -> &'static str {
+        self.name
+    }
+
+    /// Minimum number of occurrences (`minOccurs`).
+    #[must_use]
+    pub const fn min(&self) -> usize {
+        self.min
+    }
+
+    /// Maximum number of occurrences (`maxOccurs`); `None` means unbounded.
+    #[must_use]
+    pub const fn max(&self) -> Option<usize> {
+        self.max
+    }
+
     const fn one(name: &'static str) -> Self {
         Self {
             name,
@@ -125,9 +148,9 @@ impl ChildRule {
 }
 
 #[derive(Clone, Copy)]
-struct ContentRule {
-    children: &'static [ChildRule],
-    ordered: bool,
+pub(crate) struct ContentRule {
+    pub(crate) children: &'static [ChildRule],
+    pub(crate) ordered: bool,
 }
 
 const ROOT: &[ChildRule] = &[ChildRule::many("Specification", 1)];
@@ -169,7 +192,7 @@ const SPEC_PER_OBJECT: &[ChildRule] = &[
     ChildRule::optional("Documentation"),
     ChildRule::optional("GeometricalInformation"),
 ];
-const INHERITED_DT_CONCEPT_CHILDREN: &[&str] = &[
+pub(crate) const INHERITED_DT_CONCEPT_CHILDREN: &[&str] = &[
     "Name",
     "Definition",
     "ReferenceDocumentRef",
@@ -371,7 +394,7 @@ fn visit(
     validate_children(element, content, path, diagnostics);
 }
 
-fn content_rule(name: &str, parent: Option<&str>) -> Option<ContentRule> {
+pub(crate) fn content_rule(name: &str, parent: Option<&str>) -> Option<ContentRule> {
     let (children, ordered) = match (parent, name) {
         (None, "LevelOfInformationNeed") => (ROOT, true),
         (Some("LevelOfInformationNeed"), "Specification") => (SPECIFICATION, true),
@@ -430,7 +453,7 @@ fn content_rule(name: &str, parent: Option<&str>) -> Option<ContentRule> {
     Some(ContentRule { children, ordered })
 }
 
-fn is_imported_dt_complex(name: &str, parent: Option<&str>) -> bool {
+pub(crate) fn is_imported_dt_complex(name: &str, parent: Option<&str>) -> bool {
     matches!(
         (parent, name),
         (Some("SpecificationPerObjectType"), "ObjectType")
@@ -681,7 +704,7 @@ fn validate_children(
     }
 }
 
-fn validate_attributes(
+pub(crate) fn validate_attributes(
     element: &XmlElement,
     parent: Option<&str>,
     path: &str,
@@ -944,7 +967,7 @@ fn validate_dt_element(element: &XmlElement, path: &str, diagnostics: &mut Vec<D
     }
 }
 
-fn validate_lexical_content(
+pub(crate) fn validate_lexical_content(
     element: &XmlElement,
     parent: Option<&str>,
     path: &str,
@@ -1010,7 +1033,25 @@ fn validate_lexical_content(
         validate_boolean(&value, path, diagnostics);
     }
 
-    let values = match (parent, name) {
+    let values = enumeration_values(parent, name);
+    if values.is_some_and(|allowed| !allowed.contains(&value.as_str())) {
+        push(
+            diagnostics,
+            Severity::Error,
+            DiagnosticCode::InvalidEnumeration,
+            path,
+            format!("{value:?} is not a declared {name} value"),
+        );
+    }
+}
+
+/// Declared enumeration values for a simple-content LOIN element, keyed by its
+/// parent's local name. The value sets live on the model enums (`VALUES`).
+pub(crate) fn enumeration_values(
+    parent: Option<&str>,
+    name: &str,
+) -> Option<&'static [&'static str]> {
+    match (parent, name) {
         (Some("Detail"), "ShapeAssembly") => Some(model::ShapeAssembly::VALUES),
         (Some("Detail"), "ShapeRepresentation") => Some(model::ShapeRepresentation::VALUES),
         (Some("ShapeInfluence"), "InsideGeometry") => Some(model::InsideGeometry::VALUES),
@@ -1030,15 +1071,6 @@ fn validate_lexical_content(
             Some(model::CoordinateReferenceSystemKind::VALUES)
         }
         _ => None,
-    };
-    if values.is_some_and(|allowed| !allowed.contains(&value.as_str())) {
-        push(
-            diagnostics,
-            Severity::Error,
-            DiagnosticCode::InvalidEnumeration,
-            path,
-            format!("{value:?} is not a declared {name} value"),
-        );
     }
 }
 

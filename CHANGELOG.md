@@ -18,8 +18,27 @@ and this project follows [Semantic Versioning](https://semver.org/).
   `AuthoringError::UnwritableDtContent`. ISO 23387 subtrees are now encoded by
   `openbim-dt` 0.3's codec and embedded under their LOIN element names, the
   inverse of how `from_document` decodes them. Writing then reading returns
-  the same model; tests pin this for the maximal reader fixture and for every
-  DT-owned type.
+  the same model; tests pin this for the maximal reader fixture, for every
+  DT-owned type, and for the complete `office-fit-out` example, which is now
+  written back as well.
+- `openbim-loin/examples/`: three original sample LOIN documents (a complete
+  office fit-out, a LOIN-only georeferencing handover, and a nilled
+  per-object specification) and a `check_examples` Cargo example that parses,
+  validates and round-trips them or any given file. Tests pin that every
+  example validates with zero diagnostics, writes back byte for byte with
+  `OutputNamespace::Preserve`, and meets its stated typed-model contract; the
+  gate runs the example. Closes #10.
+- `openbim_loin::grammar`: a read-only, machine-readable view of the grammar
+  `validate()` enforces (elements keyed by parent and name, content model,
+  child cardinalities and order, attributes with namespace, requiredness and
+  value type, enumeration values). Structure and enumerations are derived
+  from the validator tables; attributes and scalar types are checked against
+  the validator by exhaustive tests. `grammar::to_json()` renders it as
+  `openbim-loin/loin-grammar.json` (format version 1), which is committed,
+  shipped in the crate and drift-checked. See ADR 0005.
+- `@openbim/loin` exports `grammar()`, returning the same JSON text.
+- `scripts/check-grammar-artifact.py` checks the examples using only the
+  JSON artifact, as a third-party tool would, and rejects seeded mutants.
 
 - `LevelOfInformationNeed::from_document` reads a parsed document into the
   typed model. It is strict: content the model cannot represent is refused
@@ -33,6 +52,9 @@ and this project follows [Semantic Versioning](https://semver.org/).
   Previously it was refused with the DT-content error even though it is
   LOIN-owned.
 - `DatumRegistryReference::descriptions()`, the missing getter.
+- `Specification::set_name` and `Purpose::set_name`, the last missing setters
+  from the API papercuts in #7 and #8. `Purpose::set_name` replaces the first
+  `Name` branch in place and refuses to empty the choice.
 - Every ISO 7817-3 enumeration type gets `VALUES`, `as_str()`, `Display`
   and `FromStr`, with `InvalidEnumerationValue` naming the enumeration and
   the rejected value.
@@ -55,6 +77,8 @@ and this project follows [Semantic Versioning](https://semver.org/).
 - Depends on `openbim-dt` 0.3.
 - The gate requires every evidence script's completion marker, so a
   skipped or no-op check fails instead of passing silently.
+- The validator's `ChildRule` table type is now public (read-only, via
+  `openbim_loin::grammar::ChildRule`).
 - The gate rejects a `Cargo.lock` that resolves `openbim-dt` to a path.
 - Release tags are lockstep: the tag must match every crate and the npm
   manifest, not only `openbim-loin-wasm`.

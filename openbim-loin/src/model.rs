@@ -341,6 +341,16 @@ impl Purpose {
             value.map(PurposeItem::Definition),
         )
     }
+    /// Replaces the first `Name` branch in place, or appends one when absent.
+    ///
+    /// # Errors
+    /// Returns `EmptyPurpose` if removing the name would empty the choice.
+    pub fn set_name(&mut self, value: Option<MultiLanguageText>) -> Result<(), EmptyPurpose> {
+        self.replace_optional_item(
+            |item| matches!(item, PurposeItem::Name(_)),
+            value.map(PurposeItem::Name),
+        )
+    }
     pub fn add_reference_document(&mut self, value: Reference) {
         self.items.push(PurposeItem::ReferenceDocument(value));
     }
@@ -590,6 +600,9 @@ impl Specification {
     #[must_use]
     pub const fn prerequisites(&self) -> &Prerequisites {
         &self.prerequisites
+    }
+    pub fn set_name(&mut self, value: impl Into<String>) {
+        self.name = value.into();
     }
     pub fn add_per_object(&mut self, value: SpecificationPerObjectType) {
         self.per_object.push(value);

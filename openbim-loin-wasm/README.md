@@ -19,6 +19,7 @@ validate(xml: string): Diagnostic[]   // throws LoinParseError
 rewrite(xml: string): string          // throws LoinParseError | LoinWriteError
 migrate(xml: string, target: NamespaceVersion): Migration
 isWellFormed(xml: string): boolean
+grammar(): string                     // JSON; see below
 ```
 
 Everything crossing the boundary is machine-readable. A `Diagnostic` is
@@ -51,6 +52,20 @@ report with both counts zero. An unknown target throws `TypeError` rather
 than falling back to a default. When a migration would make two attributes
 share one expanded name it throws `LoinMigrationError`, carrying `element`
 and `localName` so the caller can point at the collision.
+
+### Grammar
+
+`grammar()` returns the machine-readable LOIN grammar that `validate`
+enforces: the same bytes as `openbim-loin/loin-grammar.json` (format version
+1). Parse it with `JSON.parse`. Elements are keyed by `(parent, name)` and
+list their content model, child cardinalities and order, attributes with
+their namespace and value type, and enumeration values. See
+[ADR 0005](../docs/adr/0005-published-grammar-derived-from-validator-tables.md).
+
+```js
+const g = JSON.parse(grammar());
+const purpose = g.elements.find((e) => e.parent === "Prerequisites" && e.name === "Purpose");
+```
 
 ## Build
 

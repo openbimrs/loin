@@ -35,6 +35,11 @@
 //! ISO 23387 complex-type internals remain owned by `openbim-dt` and outside the
 //! validator's complete coverage.
 //!
+//! The grammar the validator enforces is published read-only by [`grammar`],
+//! and as JSON (`loin-grammar.json` in this package), for tools that target the
+//! format without reading validator source. Sample documents live in this
+//! package's `examples/` directory.
+//!
 //! The ISO XSD is **not vendored**. Both the ISO/CEN originals and the public
 //! committee drafts are unlicensed for redistribution, and the schema is a
 //! moving target; it is referenced out of tree instead.
@@ -43,6 +48,7 @@
 
 mod authoring;
 mod document;
+pub mod grammar;
 mod model;
 mod parser;
 mod reader;

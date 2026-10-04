@@ -90,3 +90,19 @@ console.log(
   "names=" + mig.report.changedNames,
   "decls=" + mig.report.changedDeclarations
 );
+
+// 7. The grammar export is the published artifact, byte for byte, and is
+//    usable JSON describing the root and its required Specification.
+const fs = require("node:fs");
+const text = m.grammar();
+assert.strictEqual(
+  text,
+  fs.readFileSync("openbim-loin/loin-grammar.json", "utf8"),
+  "grammar() equals the committed loin-grammar.json"
+);
+const grammar = JSON.parse(text);
+assert.strictEqual(grammar.formatVersion, 1);
+const root = grammar.elements.find((e) => e.parent === null);
+assert.strictEqual(root.name, "LevelOfInformationNeed");
+assert.deepStrictEqual(root.children, [{ name: "Specification", min: 1, max: null }]);
+console.log("grammar OK:", grammar.elements.length, "elements");

@@ -1,0 +1,735 @@
+{
+  "format": "openbim-loin-grammar",
+  "formatVersion": 1,
+  "description": "ISO 7817-3 LOIN grammar enforced by openbim-loin validate(). Elements are keyed by (parent, name); every element below the root is unqualified. Content of 'imported' elements is ISO 23387 and is not described here.",
+  "namespaces": {
+    "loin": ["https://iso.org/2024/LOIN", "https://iso.org/2022/LOIN"],
+    "dt": "https://standards.iso.org/iso/23387/ed-2/en/",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+  },
+  "root": "LevelOfInformationNeed",
+  "globalAttributes": [
+    { "namespace": "xsi", "name": "schemaLocation", "required": false, "valueType": "string" },
+    { "namespace": "xsi", "name": "noNamespaceSchemaLocation", "required": false, "valueType": "string" }
+  ],
+  "elements": [
+    {
+      "parent": null,
+      "name": "LevelOfInformationNeed",
+      "content": "sequence",
+      "children": [
+        { "name": "Specification", "min": 1, "max": null }
+      ]
+    },
+    {
+      "parent": "LevelOfInformationNeed",
+      "name": "Specification",
+      "content": "sequence",
+      "children": [
+        { "name": "Prerequisites", "min": 1, "max": 1 },
+        { "name": "SpecificationPerObjectType", "min": 0, "max": null },
+        { "name": "GeoReferencing", "min": 0, "max": 1 }
+      ],
+      "attributes": [
+        { "namespace": null, "name": "name", "required": true, "valueType": "string" },
+        { "namespace": "dt", "name": "GUID", "required": true, "valueType": "guid" }
+      ]
+    },
+    {
+      "parent": "Specification",
+      "name": "Prerequisites",
+      "content": "sequence",
+      "children": [
+        { "name": "Purpose", "min": 1, "max": 1 },
+        { "name": "InformationDeliveryMilestone", "min": 1, "max": 1 },
+        { "name": "ProvidingActor", "min": 1, "max": 1 },
+        { "name": "ReceivingActor", "min": 1, "max": 1 }
+      ],
+      "attributes": [
+        { "namespace": "dt", "name": "GUID", "required": true, "valueType": "guid" }
+      ]
+    },
+    {
+      "parent": "Prerequisites",
+      "name": "Purpose",
+      "content": "choice",
+      "children": [
+        { "name": "Name", "min": 0, "max": null },
+        { "name": "Definition", "min": 0, "max": null },
+        { "name": "ReferenceDocument", "min": 0, "max": null },
+        { "name": "Description", "min": 0, "max": null },
+        { "name": "Language", "min": 0, "max": null },
+        { "name": "Region", "min": 0, "max": null },
+        { "name": "DictionaryRef", "min": 0, "max": null }
+      ],
+      "attributes": [
+        { "namespace": "dt", "name": "GUID", "required": true, "valueType": "guid" }
+      ]
+    },
+    {
+      "parent": "Purpose",
+      "name": "Name",
+      "content": "simple",
+      "valueType": "string",
+      "attributes": [
+        { "namespace": null, "name": "language", "required": true, "valueType": "language" }
+      ]
+    },
+    {
+      "parent": "Purpose",
+      "name": "Definition",
+      "content": "simple",
+      "valueType": "string",
+      "attributes": [
+        { "namespace": null, "name": "language", "required": true, "valueType": "language" }
+      ]
+    },
+    {
+      "parent": "Purpose",
+      "name": "ReferenceDocument",
+      "content": "imported"
+    },
+    {
+      "parent": "Purpose",
+      "name": "Description",
+      "content": "simple",
+      "valueType": "string",
+      "attributes": [
+        { "namespace": null, "name": "language", "required": true, "valueType": "language" }
+      ]
+    },
+    {
+      "parent": "Purpose",
+      "name": "Language",
+      "content": "simple",
+      "valueType": "language"
+    },
+    {
+      "parent": "Purpose",
+      "name": "Region",
+      "content": "simple",
+      "valueType": "string"
+    },
+    {
+      "parent": "Purpose",
+      "name": "DictionaryRef",
+      "content": "imported"
+    },
+    {
+      "parent": "Prerequisites",
+      "name": "InformationDeliveryMilestone",
+      "content": "sequence",
+      "children": [
+        { "name": "Name", "min": 1, "max": 1 },
+        { "name": "Description", "min": 0, "max": null },
+        { "name": "ReferenceDocument", "min": 0, "max": null }
+      ],
+      "attributes": [
+        { "namespace": "dt", "name": "GUID", "required": true, "valueType": "guid" },
+        { "namespace": null, "name": "Date", "required": false, "valueType": "dateTime" }
+      ]
+    },
+    {
+      "parent": "InformationDeliveryMilestone",
+      "name": "Name",
+      "content": "simple",
+      "valueType": "string",
+      "attributes": [
+        { "namespace": null, "name": "language", "required": true, "valueType": "language" }
+      ]
+    },
+    {
+      "parent": "InformationDeliveryMilestone",
+      "name": "Description",
+      "content": "simple",
+      "valueType": "string",
+      "attributes": [
+        { "namespace": null, "name": "language", "required": true, "valueType": "language" }
+      ]
+    },
+    {
+      "parent": "InformationDeliveryMilestone",
+      "name": "ReferenceDocument",
+      "content": "imported"
+    },
+    {
+      "parent": "Prerequisites",
+      "name": "ProvidingActor",
+      "content": "sequence",
+      "children": [
+        { "name": "Role", "min": 1, "max": 1 },
+        { "name": "Description", "min": 0, "max": 1 },
+        { "name": "EMailAddress", "min": 0, "max": 1 }
+      ],
+      "attributes": [
+        { "namespace": "dt", "name": "GUID", "required": true, "valueType": "guid" },
+        { "namespace": null, "name": "firstName", "required": false, "valueType": "string" },
+        { "namespace": null, "name": "middleName", "required": false, "valueType": "string" },
+        { "namespace": null, "name": "lastName", "required": false, "valueType": "string" },
+        { "namespace": null, "name": "affiliation", "required": false, "valueType": "string" }
+      ]
+    },
+    {
+      "parent": "ProvidingActor",
+      "name": "Role",
+      "content": "simple",
+      "valueType": "string",
+      "attributes": [
+        { "namespace": null, "name": "language", "required": true, "valueType": "language" }
+      ]
+    },
+    {
+      "parent": "ProvidingActor",
+      "name": "Description",
+      "content": "simple",
+      "valueType": "string",
+      "attributes": [
+        { "namespace": null, "name": "language", "required": true, "valueType": "language" }
+      ]
+    },
+    {
+      "parent": "ProvidingActor",
+      "name": "EMailAddress",
+      "content": "simple",
+      "valueType": "emailAddress"
+    },
+    {
+      "parent": "Prerequisites",
+      "name": "ReceivingActor",
+      "content": "sequence",
+      "children": [
+        { "name": "Role", "min": 1, "max": 1 },
+        { "name": "Description", "min": 0, "max": 1 },
+        { "name": "EMailAddress", "min": 0, "max": 1 }
+      ],
+      "attributes": [
+        { "namespace": "dt", "name": "GUID", "required": true, "valueType": "guid" },
+        { "namespace": null, "name": "firstName", "required": false, "valueType": "string" },
+        { "namespace": null, "name": "middleName", "required": false, "valueType": "string" },
+        { "namespace": null, "name": "lastName", "required": false, "valueType": "string" },
+        { "namespace": null, "name": "affiliation", "required": false, "valueType": "string" }
+      ]
+    },
+    {
+      "parent": "ReceivingActor",
+      "name": "Role",
+      "content": "simple",
+      "valueType": "string",
+      "attributes": [
+        { "namespace": null, "name": "language", "required": true, "valueType": "language" }
+      ]
+    },
+    {
+      "parent": "ReceivingActor",
+      "name": "Description",
+      "content": "simple",
+      "valueType": "string",
+      "attributes": [
+        { "namespace": null, "name": "language", "required": true, "valueType": "language" }
+      ]
+    },
+    {
+      "parent": "ReceivingActor",
+      "name": "EMailAddress",
+      "content": "simple",
+      "valueType": "emailAddress"
+    },
+    {
+      "parent": "Specification",
+      "name": "SpecificationPerObjectType",
+      "content": "sequence",
+      "children": [
+        { "name": "ObjectType", "min": 1, "max": 1 },
+        { "name": "AlphanumericalInformation", "min": 0, "max": 1 },
+        { "name": "Documentation", "min": 0, "max": 1 },
+        { "name": "GeometricalInformation", "min": 0, "max": 1 }
+      ],
+      "inheritedDtChildren": ["Name", "Definition", "ReferenceDocumentRef", "Description", "Example", "SimilarToRef", "LanguageOfCreator", "CountryOfOrigin", "VisualRepresentation", "MajorVersion", "MinorVersion", "Status", "ReplacedObjectsRef", "DeprecationExplanation", "DictionaryRef"],
+      "nillable": true,
+      "attributes": [
+        { "namespace": "dt", "name": "GUID", "required": true, "valueType": "guid" },
+        { "namespace": "dt", "name": "about", "required": false, "valueType": "anyUri" },
+        { "namespace": null, "name": "dateOfCreation", "required": true, "valueType": "dateTime" },
+        { "namespace": "xsi", "name": "nil", "required": false, "valueType": "boolean" }
+      ]
+    },
+    {
+      "parent": "SpecificationPerObjectType",
+      "name": "ObjectType",
+      "content": "imported"
+    },
+    {
+      "parent": "SpecificationPerObjectType",
+      "name": "AlphanumericalInformation",
+      "content": "sequence",
+      "children": [
+        { "name": "Property", "min": 0, "max": null },
+        { "name": "QuantityKind", "min": 0, "max": null },
+        { "name": "GroupsOfProperties", "min": 0, "max": 1 },
+        { "name": "ReferenceDocument", "min": 0, "max": null },
+        { "name": "Dimension", "min": 0, "max": null },
+        { "name": "Unit", "min": 0, "max": null }
+      ],
+      "attributes": [
+        { "namespace": "dt", "name": "GUID", "required": true, "valueType": "guid" }
+      ]
+    },
+    {
+      "parent": "AlphanumericalInformation",
+      "name": "Property",
+      "content": "imported"
+    },
+    {
+      "parent": "AlphanumericalInformation",
+      "name": "QuantityKind",
+      "content": "imported"
+    },
+    {
+      "parent": "AlphanumericalInformation",
+      "name": "GroupsOfProperties",
+      "content": "sequence",
+      "children": [
+        { "name": "GroupOfProperties", "min": 0, "max": null },
+        { "name": "GroupOfPropertiesRef", "min": 0, "max": null }
+      ]
+    },
+    {
+      "parent": "GroupsOfProperties",
+      "name": "GroupOfProperties",
+      "content": "imported"
+    },
+    {
+      "parent": "GroupsOfProperties",
+      "name": "GroupOfPropertiesRef",
+      "content": "imported"
+    },
+    {
+      "parent": "AlphanumericalInformation",
+      "name": "ReferenceDocument",
+      "content": "imported"
+    },
+    {
+      "parent": "AlphanumericalInformation",
+      "name": "Dimension",
+      "content": "imported"
+    },
+    {
+      "parent": "AlphanumericalInformation",
+      "name": "Unit",
+      "content": "imported"
+    },
+    {
+      "parent": "SpecificationPerObjectType",
+      "name": "Documentation",
+      "content": "sequence",
+      "children": [
+        { "name": "Document", "min": 0, "max": null }
+      ],
+      "attributes": [
+        { "namespace": "dt", "name": "GUID", "required": true, "valueType": "guid" }
+      ]
+    },
+    {
+      "parent": "Documentation",
+      "name": "Document",
+      "content": "sequence",
+      "children": [
+        { "name": "Name", "min": 1, "max": 1 },
+        { "name": "ReferenceDocument", "min": 0, "max": null },
+        { "name": "Description", "min": 0, "max": null },
+        { "name": "Format", "min": 1, "max": 1 }
+      ],
+      "attributes": [
+        { "namespace": "dt", "name": "GUID", "required": true, "valueType": "guid" },
+        { "namespace": null, "name": "type", "required": false, "valueType": "string" },
+        { "namespace": null, "name": "form", "required": false, "valueType": "string" },
+        { "namespace": null, "name": "content", "required": false, "valueType": "string" }
+      ]
+    },
+    {
+      "parent": "Document",
+      "name": "Name",
+      "content": "simple",
+      "valueType": "string",
+      "attributes": [
+        { "namespace": null, "name": "language", "required": true, "valueType": "language" }
+      ]
+    },
+    {
+      "parent": "Document",
+      "name": "ReferenceDocument",
+      "content": "imported"
+    },
+    {
+      "parent": "Document",
+      "name": "Description",
+      "content": "simple",
+      "valueType": "string",
+      "attributes": [
+        { "namespace": null, "name": "language", "required": true, "valueType": "language" }
+      ]
+    },
+    {
+      "parent": "Document",
+      "name": "Format",
+      "content": "sequence",
+      "children": [
+        { "name": "FormatName", "min": 1, "max": null },
+        { "name": "FormatVersion", "min": 1, "max": null },
+        { "name": "FormatSpecification", "min": 0, "max": null }
+      ]
+    },
+    {
+      "parent": "Format",
+      "name": "FormatName",
+      "content": "simple",
+      "valueType": "string",
+      "attributes": [
+        { "namespace": null, "name": "language", "required": true, "valueType": "language" }
+      ]
+    },
+    {
+      "parent": "Format",
+      "name": "FormatVersion",
+      "content": "simple",
+      "valueType": "string",
+      "attributes": [
+        { "namespace": null, "name": "language", "required": true, "valueType": "language" }
+      ]
+    },
+    {
+      "parent": "Format",
+      "name": "FormatSpecification",
+      "content": "imported"
+    },
+    {
+      "parent": "SpecificationPerObjectType",
+      "name": "GeometricalInformation",
+      "content": "sequence",
+      "children": [
+        { "name": "Detail", "min": 0, "max": 1 },
+        { "name": "Dimensionality", "min": 0, "max": 1 },
+        { "name": "Appearance", "min": 0, "max": 1 },
+        { "name": "ParametricBehaviour", "min": 0, "max": 1 },
+        { "name": "Location", "min": 0, "max": 1 }
+      ],
+      "attributes": [
+        { "namespace": "dt", "name": "GUID", "required": true, "valueType": "guid" },
+        { "namespace": null, "name": "placeholder", "required": false, "valueType": "boolean" }
+      ]
+    },
+    {
+      "parent": "GeometricalInformation",
+      "name": "Detail",
+      "content": "sequence",
+      "children": [
+        { "name": "Dictionary", "min": 0, "max": 1 },
+        { "name": "ShapeAssembly", "min": 0, "max": 1 },
+        { "name": "ShapeRepresentation", "min": 0, "max": 1 },
+        { "name": "ShapeInfluence", "min": 0, "max": 1 }
+      ]
+    },
+    {
+      "parent": "Detail",
+      "name": "Dictionary",
+      "content": "imported"
+    },
+    {
+      "parent": "Detail",
+      "name": "ShapeAssembly",
+      "content": "simple",
+      "valueType": "enumeration",
+      "values": ["NotRequired", "SingleObjectSingularShape", "SingleObjectMultipleShapes", "MultipleObjects"]
+    },
+    {
+      "parent": "Detail",
+      "name": "ShapeRepresentation",
+      "content": "simple",
+      "valueType": "enumeration",
+      "values": ["NotRequired", "SingleBoundingPrimitive", "OuterShellAsSingularShape", "OuterShellAsSeparateShapes"]
+    },
+    {
+      "parent": "Detail",
+      "name": "ShapeInfluence",
+      "content": "sequence",
+      "children": [
+        { "name": "InsideGeometry", "min": 0, "max": 1 },
+        { "name": "Connections", "min": 0, "max": 1 },
+        { "name": "Openings", "min": 0, "max": 1 },
+        { "name": "OperatingAndClearanceZones", "min": 0, "max": 1 },
+        { "name": "Features", "min": 0, "max": 1 },
+        { "name": "ThresholdDimension", "min": 0, "max": 1 }
+      ]
+    },
+    {
+      "parent": "ShapeInfluence",
+      "name": "InsideGeometry",
+      "content": "simple",
+      "valueType": "enumeration",
+      "values": ["NotRequired", "NoInsideGeometry", "InsideGeometryAsPartOfShape", "SeparateShapes"]
+    },
+    {
+      "parent": "ShapeInfluence",
+      "name": "Connections",
+      "content": "simple",
+      "valueType": "enumeration",
+      "values": ["NotRequired", "NoConnections", "ConnectionsAsPartOfShape", "SeparateShapes"]
+    },
+    {
+      "parent": "ShapeInfluence",
+      "name": "Openings",
+      "content": "simple",
+      "valueType": "enumeration",
+      "values": ["NotRequired", "NoOpenings", "OpeningsAsPartOfShape", "SeparateShapes"]
+    },
+    {
+      "parent": "ShapeInfluence",
+      "name": "OperatingAndClearanceZones",
+      "content": "simple",
+      "valueType": "enumeration",
+      "values": ["NotRequired", "NoZones", "ZonesAsPartOfShape", "SeparateShapes"]
+    },
+    {
+      "parent": "ShapeInfluence",
+      "name": "Features",
+      "content": "simple",
+      "valueType": "enumeration",
+      "values": ["NotRequired", "NoFeatures", "FeaturesAsPartOfShape", "SeparateShapes"]
+    },
+    {
+      "parent": "ShapeInfluence",
+      "name": "ThresholdDimension",
+      "content": "sequence",
+      "children": [
+        { "name": "Threshold", "min": 1, "max": 1 },
+        { "name": "Unit", "min": 1, "max": 1 },
+        { "name": "Definition", "min": 1, "max": 1 }
+      ]
+    },
+    {
+      "parent": "ThresholdDimension",
+      "name": "Threshold",
+      "content": "simple",
+      "valueType": "double"
+    },
+    {
+      "parent": "ThresholdDimension",
+      "name": "Unit",
+      "content": "imported"
+    },
+    {
+      "parent": "ThresholdDimension",
+      "name": "Definition",
+      "content": "simple",
+      "valueType": "string",
+      "attributes": [
+        { "namespace": null, "name": "language", "required": true, "valueType": "language" }
+      ]
+    },
+    {
+      "parent": "GeometricalInformation",
+      "name": "Dimensionality",
+      "content": "simple",
+      "valueType": "enumeration",
+      "values": ["NotRequired", "0D", "1D", "2D", "3D"]
+    },
+    {
+      "parent": "GeometricalInformation",
+      "name": "Appearance",
+      "content": "simple",
+      "valueType": "enumeration",
+      "values": ["NotRequired", "NoAppearanceInformation", "SymbolicByMapping", "SingularMaterial", "MultipleMaterials", "ConceptualAppearance", "RealisticAppearance"]
+    },
+    {
+      "parent": "GeometricalInformation",
+      "name": "ParametricBehaviour",
+      "content": "simple",
+      "valueType": "enumeration",
+      "values": ["NotRequested", "Requested"]
+    },
+    {
+      "parent": "GeometricalInformation",
+      "name": "Location",
+      "content": "sequence",
+      "children": [
+        { "name": "RelativeOrAbsolute", "min": 1, "max": 1 },
+        { "name": "ReferenceObject", "min": 0, "max": 1 }
+      ]
+    },
+    {
+      "parent": "Location",
+      "name": "RelativeOrAbsolute",
+      "content": "simple",
+      "valueType": "enumeration",
+      "values": ["NotDefined", "Absolute", "Relative"]
+    },
+    {
+      "parent": "Location",
+      "name": "ReferenceObject",
+      "content": "simple",
+      "valueType": "string"
+    },
+    {
+      "parent": "Specification",
+      "name": "GeoReferencing",
+      "content": "sequence",
+      "children": [
+        { "name": "CoordinateReferenceSystem", "min": 0, "max": 1 },
+        { "name": "ModelCoordinateSystem", "min": 0, "max": null }
+      ]
+    },
+    {
+      "parent": "GeoReferencing",
+      "name": "CoordinateReferenceSystem",
+      "content": "sequence",
+      "children": [
+        { "name": "Type", "min": 1, "max": 1 },
+        { "name": "Datum", "min": 1, "max": 1 },
+        { "name": "VerticalDatum", "min": 0, "max": 1 }
+      ]
+    },
+    {
+      "parent": "CoordinateReferenceSystem",
+      "name": "Type",
+      "content": "simple",
+      "valueType": "enumeration",
+      "values": ["NotRequired", "ProjectedCRS", "EngineeringCRS", "GeographicCRS"]
+    },
+    {
+      "parent": "CoordinateReferenceSystem",
+      "name": "Datum",
+      "content": "sequence",
+      "children": [
+        { "name": "Name", "min": 1, "max": 1 },
+        { "name": "Type", "min": 1, "max": 1 }
+      ]
+    },
+    {
+      "parent": "Datum",
+      "name": "Name",
+      "content": "simple",
+      "valueType": "string"
+    },
+    {
+      "parent": "Datum",
+      "name": "Type",
+      "content": "sequence",
+      "children": [
+        { "name": "Name", "min": 1, "max": 1 },
+        { "name": "Description", "min": 0, "max": null },
+        { "name": "RegistryReference", "min": 0, "max": 1 }
+      ]
+    },
+    {
+      "parent": "Type",
+      "name": "Name",
+      "content": "simple",
+      "valueType": "string",
+      "attributes": [
+        { "namespace": null, "name": "language", "required": true, "valueType": "language" }
+      ]
+    },
+    {
+      "parent": "Type",
+      "name": "Description",
+      "content": "simple",
+      "valueType": "string",
+      "attributes": [
+        { "namespace": null, "name": "language", "required": true, "valueType": "language" }
+      ]
+    },
+    {
+      "parent": "Type",
+      "name": "RegistryReference",
+      "content": "imported"
+    },
+    {
+      "parent": "CoordinateReferenceSystem",
+      "name": "VerticalDatum",
+      "content": "sequence",
+      "children": [
+        { "name": "Name", "min": 1, "max": 1 },
+        { "name": "Type", "min": 1, "max": 1 }
+      ]
+    },
+    {
+      "parent": "VerticalDatum",
+      "name": "Name",
+      "content": "simple",
+      "valueType": "string"
+    },
+    {
+      "parent": "VerticalDatum",
+      "name": "Type",
+      "content": "sequence",
+      "children": [
+        { "name": "Name", "min": 1, "max": 1 },
+        { "name": "Description", "min": 0, "max": null },
+        { "name": "RegistryReference", "min": 0, "max": 1 }
+      ]
+    },
+    {
+      "parent": "GeoReferencing",
+      "name": "ModelCoordinateSystem",
+      "content": "sequence",
+      "children": [
+        { "name": "IsProjected", "min": 1, "max": 1 },
+        { "name": "FirstCoordinate", "min": 1, "max": 1 },
+        { "name": "SecondCoordinate", "min": 1, "max": 1 },
+        { "name": "Height", "min": 1, "max": 1 },
+        { "name": "XAxisAbscissa", "min": 0, "max": 1 },
+        { "name": "XAxisOrdinate", "min": 0, "max": 1 },
+        { "name": "UnitScale", "min": 0, "max": 1 },
+        { "name": "HorizontalScale", "min": 0, "max": 1 }
+      ]
+    },
+    {
+      "parent": "ModelCoordinateSystem",
+      "name": "IsProjected",
+      "content": "simple",
+      "valueType": "boolean"
+    },
+    {
+      "parent": "ModelCoordinateSystem",
+      "name": "FirstCoordinate",
+      "content": "simple",
+      "valueType": "decimal"
+    },
+    {
+      "parent": "ModelCoordinateSystem",
+      "name": "SecondCoordinate",
+      "content": "simple",
+      "valueType": "decimal"
+    },
+    {
+      "parent": "ModelCoordinateSystem",
+      "name": "Height",
+      "content": "simple",
+      "valueType": "decimal"
+    },
+    {
+      "parent": "ModelCoordinateSystem",
+      "name": "XAxisAbscissa",
+      "content": "simple",
+      "valueType": "decimal"
+    },
+    {
+      "parent": "ModelCoordinateSystem",
+      "name": "XAxisOrdinate",
+      "content": "simple",
+      "valueType": "decimal"
+    },
+    {
+      "parent": "ModelCoordinateSystem",
+      "name": "UnitScale",
+      "content": "simple",
+      "valueType": "decimal"
+    },
+    {
+      "parent": "ModelCoordinateSystem",
+      "name": "HorizontalScale",
+      "content": "simple",
+      "valueType": "decimal"
+    }
+  ]
+}
