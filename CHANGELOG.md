@@ -9,6 +9,19 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `openbim-loin-cli`: an `openbim-loin` command with `validate`, `lint`,
+  `read`, `migrate`, `rewrite` and `grammar` subcommands, `--format json` for
+  the diagnostic-producing ones, stdin input, UTF-8/UTF-16 input, and
+  documented exit codes (0 ok, 1 findings or refusal, 2 usage/I-O/parse
+  error). No dependencies beyond `openbim-loin`; end-to-end tests run the
+  binary against the shipped examples (#26).
+- `LoinDocument::lint` and `lint(xml)` in `@openbim/loin`: opt-in warnings the
+  schema does not require. They report a duplicate `dt:GUID` on LOIN's
+  identity-bearing elements (references and reused ISO 23387 definitions
+  legitimately repeat one), the nil GUID, a blank `Specification` name and a
+  whitespace-padded `Date`/`dateOfCreation`. `validate()` is unchanged. New
+  `DiagnosticCode` variants `DuplicateGuid`, `NilGuid`, `EmptyName` and
+  `PaddedDateTime` (an exhaustive `match` over the enum needs new arms) (#28).
 - `LoinDocument::parse_bytes` / `parse_bytes_with_options` accept UTF-8
   (with or without a BOM) and UTF-16 (BOM or `<`-first sniffing). A declared
   `encoding` that contradicts the detected one, an unsupported one (for

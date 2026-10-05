@@ -17,8 +17,14 @@ loin  -- exact-version dependency -->  openbim-loin  -->  openbim-dt
 (alias; no items)                       (all LOIN behavior)
                                               ^
 openbim-loin-wasm  -- exact-version ---------+
-(wasm-bindgen bindings; npm @openbim/loin)
+(wasm-bindgen bindings; npm @openbim/loin)   |
+                                              |
+openbim-loin-cli   -- exact-version ---------+
+(`openbim-loin` binary; std only)
 ```
+
+`openbim-loin-cli` is argument handling and output formatting over the library;
+it has no dependencies of its own, and LOIN behavior stays in `openbim-loin`.
 
 `openbim-loin-wasm` is a separate package rather than a feature on
 `openbim-loin` because `crate-type = ["cdylib"]` is per-package and cannot be

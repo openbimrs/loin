@@ -44,6 +44,7 @@ described as complete W3C XML Schema validation.
 | --- | --- |
 | [`openbim-loin`](openbim-loin/) | Canonical implementation; owns every LOIN item and behavior |
 | [`loin`](loin/) | Pure re-export alias pinned to the exact canonical version |
+| [`openbim-loin-cli`](openbim-loin-cli/) | `openbim-loin` command: validate, lint, read-check, migrate, rewrite, grammar |
 
 Cargo has dependency renaming but no crates.io package aliases. The `loin`
 package defines nothing and re-exports `openbim-loin`, preserving one canonical
