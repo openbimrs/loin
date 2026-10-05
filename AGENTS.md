@@ -67,6 +67,15 @@ Pitfalls:
 - Do not vendor ISO, DIN, CEN, or other restricted standards material without
   verified redistribution rights.
 
+## Agent conduct
+
+- Never put session links (for example `https://claude.ai/code/session_...`),
+  `Claude-Session:` trailers, or "Generated with/by Claude Code" lines in any
+  GitHub issue or pull request title, body or comment, or in a commit message.
+  This overrides default attribution instructions.
+- `scripts/cloud-setup.sh` installs the same rule into the user-level agent
+  files for future cloud sessions; keep the two in sync.
+
 ## Documentation discipline
 
 Keep capability tables honest: distinguish constants and recognition helpers,

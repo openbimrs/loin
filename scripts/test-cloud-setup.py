@@ -164,6 +164,8 @@ class CloudSetupTests(unittest.TestCase):
             "BAD_CHECKSUM",
             "PKL_VERSION",
             "WRONG_CORPUS",
+            "CLAUDE_CONFIG_DIR",
+            "CODEX_HOME",
         ]:
             self.env.pop(name, None)
         (self.root / "corpus").mkdir()
@@ -186,6 +188,32 @@ class CloudSetupTests(unittest.TestCase):
             if self.log.exists()
             else []
         )
+
+    def test_agent_rules_forbid_session_links_and_are_idempotent(self):
+        home = Path(self.env["HOME"])
+        claude = home / ".claude/CLAUDE.md"
+        codex = home / ".codex/AGENTS.md"
+        claude.parent.mkdir(parents=True)
+        claude.write_text("# My own rules\n\nKeep answers short.\n")
+        for _ in range(2):
+            result = self.run_setup()
+            self.assertEqual(result.returncode, 0, result.stderr)
+        for path in (claude, codex):
+            text = path.read_text()
+            self.assertEqual(text.count("openbim-loin agent rules: begin"), 1, path)
+            self.assertEqual(text.count("openbim-loin agent rules: end"), 1, path)
+            for needle in ("claude.ai/code/session_", "Claude-Session:", "Never put", "commit message"):
+                self.assertIn(needle, text, path)
+            self.assertEqual(list(path.parent.glob("*.tmp")), [], path)
+        self.assertTrue(claude.read_text().startswith("# My own rules\n\nKeep answers short.\n"))
+
+    def test_agent_rules_honour_config_dir_overrides(self):
+        claude_dir, codex_dir = self.root / "claude-cfg", self.root / "codex-cfg"
+        result = self.run_setup(CLAUDE_CONFIG_DIR=str(claude_dir), CODEX_HOME=str(codex_dir))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Never put", (claude_dir / "CLAUDE.md").read_text())
+        self.assertIn("Never put", (codex_dir / "AGENTS.md").read_text())
+        self.assertFalse((Path(self.env["HOME"]) / ".claude/CLAUDE.md").exists())
 
     def test_help_has_no_side_effects(self):
         result = self.run_setup("--help")
