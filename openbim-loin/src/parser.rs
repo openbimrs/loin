@@ -101,6 +101,113 @@ impl fmt::Display for ParseError {
 
 impl Error for ParseError {}
 
+/// Decodes `bytes` (UTF-8 or UTF-16, by BOM or XML Appendix F sniffing) and
+/// parses them, refusing declarations that contradict the detected encoding.
+pub(crate) fn parse_document_bytes(
+    bytes: &[u8],
+    options: ParseOptions,
+) -> Result<LoinDocument, ParseError> {
+    if bytes.len() > options.max_bytes {
+        return Err(ParseError::new(
+            ParseErrorKind::InputTooLarge,
+            0,
+            format!("{} bytes exceeds limit {}", bytes.len(), options.max_bytes),
+        ));
+    }
+    let (mut text, detected) = decode_bytes(bytes)?;
+    if let Some((declared, span)) = declared_encoding(&text) {
+        if !declaration_matches(&declared, detected, bytes.is_ascii()) {
+            return Err(ParseError::new(
+                ParseErrorKind::InvalidEncoding,
+                span.start as u64,
+                format!("declared encoding `{declared}` contradicts the {detected:?} bytes"),
+            ));
+        }
+        // The text is already decoded and documents are always written as
+        // UTF-8, so the retained declaration says so.
+        text.replace_range(span, "UTF-8");
+    }
+    parse_document(&text, options)
+}
+
+/// The `encoding` pseudo-attribute value of a leading XML declaration, with its
+/// byte range in `text`.
+fn declared_encoding(text: &str) -> Option<(String, std::ops::Range<usize>)> {
+    let rest = text.strip_prefix("<?xml")?;
+    let end = rest.find("?>")?;
+    let declaration = &rest[..end];
+    let key = declaration.find("encoding")?;
+    let after = declaration[key + "encoding".len()..].trim_start();
+    let after = after.strip_prefix('=')?.trim_start();
+    let quote = after.chars().next().filter(|c| matches!(c, '"' | '\''))?;
+    let value = &after[1..];
+    let close = value.find(quote)?;
+    let start = "<?xml".len() + (declaration.len() - value.len());
+    Some((value[..close].to_owned(), start..start + close))
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum DetectedEncoding {
+    Utf8,
+    Utf16Le,
+    Utf16Be,
+}
+
+fn declaration_matches(declared: &str, detected: DetectedEncoding, ascii: bool) -> bool {
+    let declared = declared.to_ascii_lowercase();
+    match detected {
+        DetectedEncoding::Utf8 => declared == "utf-8" || (declared == "us-ascii" && ascii),
+        DetectedEncoding::Utf16Le => matches!(declared.as_str(), "utf-16" | "utf-16le"),
+        DetectedEncoding::Utf16Be => matches!(declared.as_str(), "utf-16" | "utf-16be"),
+    }
+}
+
+fn decode_bytes(bytes: &[u8]) -> Result<(String, DetectedEncoding), ParseError> {
+    let invalid = |position: usize, message: &str| {
+        ParseError::new(ParseErrorKind::InvalidEncoding, position as u64, message)
+    };
+    let utf16 = |body: &[u8], little: bool| -> Result<String, ParseError> {
+        if body.len() % 2 != 0 {
+            return Err(invalid(
+                body.len(),
+                "UTF-16 input has an odd number of bytes",
+            ));
+        }
+        let units = body.chunks_exact(2).map(|pair| {
+            if little {
+                u16::from_le_bytes([pair[0], pair[1]])
+            } else {
+                u16::from_be_bytes([pair[0], pair[1]])
+            }
+        });
+        let mut text = String::with_capacity(body.len() / 2);
+        for (index, decoded) in char::decode_utf16(units).enumerate() {
+            text.push(decoded.map_err(|_| invalid(index * 2, "unpaired UTF-16 surrogate"))?);
+        }
+        Ok(text)
+    };
+    match bytes {
+        [0xEF, 0xBB, 0xBF, rest @ ..] => Ok((utf8(rest, 3)?, DetectedEncoding::Utf8)),
+        [0xFF, 0xFE, rest @ ..] => Ok((utf16(rest, true)?, DetectedEncoding::Utf16Le)),
+        [0xFE, 0xFF, rest @ ..] => Ok((utf16(rest, false)?, DetectedEncoding::Utf16Be)),
+        [b'<', 0x00, ..] => Ok((utf16(bytes, true)?, DetectedEncoding::Utf16Le)),
+        [0x00, b'<', ..] => Ok((utf16(bytes, false)?, DetectedEncoding::Utf16Be)),
+        _ => Ok((utf8(bytes, 0)?, DetectedEncoding::Utf8)),
+    }
+}
+
+fn utf8(bytes: &[u8], offset: usize) -> Result<String, ParseError> {
+    std::str::from_utf8(bytes)
+        .map(str::to_owned)
+        .map_err(|error| {
+            ParseError::new(
+                ParseErrorKind::InvalidEncoding,
+                (offset + error.valid_up_to()) as u64,
+                "input is not valid UTF-8",
+            )
+        })
+}
+
 pub(crate) fn parse_document(xml: &str, options: ParseOptions) -> Result<LoinDocument, ParseError> {
     if xml.len() > options.max_bytes {
         return Err(ParseError::new(
@@ -110,6 +217,9 @@ pub(crate) fn parse_document(xml: &str, options: ParseOptions) -> Result<LoinDoc
         ));
     }
 
+    // The strict pass below recurses once per nesting level and has no depth
+    // limit of its own, so the budget must be enforced first, iteratively.
+    enforce_depth_budget(xml, options)?;
     strict_well_formedness_check(xml, options)?;
 
     let mut reader = Reader::from_str(xml);
@@ -356,6 +466,34 @@ pub(crate) fn parse_document(xml: &str, options: ParseOptions) -> Result<LoinDoc
         epilog,
         namespace,
     ))
+}
+
+/// Rejects input nested deeper than `max_depth` without recursing.
+///
+/// Lexical errors are left for the strict pass to classify: this scan stops at
+/// the first one and reports nothing.
+fn enforce_depth_budget(xml: &str, options: ParseOptions) -> Result<(), ParseError> {
+    let mut reader = Reader::from_str(xml);
+    reader.config_mut().check_end_names = false;
+    let mut depth = 0usize;
+    loop {
+        let position = reader.buffer_position();
+        match reader.read_event() {
+            Ok(Event::Start(_)) => {
+                depth += 1;
+                if depth > options.max_depth {
+                    return Err(ParseError::new(
+                        ParseErrorKind::DepthLimit,
+                        position,
+                        format!("depth exceeds limit {}", options.max_depth),
+                    ));
+                }
+            }
+            Ok(Event::End(_)) => depth = depth.saturating_sub(1),
+            Ok(Event::Eof) | Err(_) => return Ok(()),
+            Ok(_) => {}
+        }
+    }
 }
 
 fn strict_well_formedness_check(xml: &str, options: ParseOptions) -> Result<(), ParseError> {

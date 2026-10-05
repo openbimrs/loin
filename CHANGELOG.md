@@ -9,6 +9,17 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `LoinDocument::parse_bytes` / `parse_bytes_with_options` accept UTF-8
+  (with or without a BOM) and UTF-16 (BOM or `<`-first sniffing). A declared
+  `encoding` that contradicts the detected one, an unsupported one (for
+  example `ISO-8859-1`) and malformed byte sequences are refused with
+  `ParseErrorKind::InvalidEncoding`; a declared encoding is retained as
+  `UTF-8` because documents are always written as UTF-8. `max_bytes` applies
+  to the raw input. The wasm and CLI surfaces are not covered yet (#27).
+- Hostile-input tests: a seeded mutation pipeline test over every shipped
+  document and the maximal fixture (no panic or abort; reader accepts implies
+  validator accepts; read -> write -> read is identity), small-stack depth
+  tests, and writer tests for characters XML cannot represent (#29, #23, #24).
 - `LoinDocument::from_model` writes every value of the typed model
   (#1). `SpecificationPerObjectType` (its concept, `ObjectType`,
   `AlphanumericalInformation`, `Documentation` and `GeometricalInformation`)
@@ -66,6 +77,17 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Parsing deeply nested input no longer aborts the process with a stack
+  overflow. The strict well-formedness pass recurses per level and had no
+  limit of its own, so `ParseOptions::max_depth` was never reached; depth is
+  now enforced by an iterative pre-scan first, and such input returns
+  `ParseErrorKind::DepthLimit` (#23).
+- `to_xml_string` (and so `from_model`) no longer returns `Ok` for content XML 1.0
+  cannot represent: characters outside the `Char` production (for example
+  U+0000), `]]>` in CDATA, `--` or a trailing `-` in a comment, and `?>` in a
+  processing instruction. It returns the new `WriteError::InvalidContent`,
+  so a successful write always reparses (#24). `WriteError` is now
+  `#[non_exhaustive]`.
 - `LoinDocument::from_model` dropped the milestone `Date`, the actor
   `firstName`/`middleName`/`lastName`/`affiliation`, and the document
   `type`/`form`/`content` attributes silently. It now writes them. Found by

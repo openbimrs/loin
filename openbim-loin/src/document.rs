@@ -483,6 +483,28 @@ impl LoinDocument {
         parse_document(xml, options)
     }
 
+    /// Parses raw bytes with conservative production defaults.
+    ///
+    /// Accepts UTF-8 (with or without a BOM) and UTF-16 (BOM, or the
+    /// `<`-first sniffing of XML 1.0 Appendix F). A declared `encoding` that
+    /// contradicts the detected one, an unsupported one (for example
+    /// `ISO-8859-1`), and malformed byte sequences are refused with
+    /// [`crate::ParseErrorKind::InvalidEncoding`] rather than guessed at. A
+    /// declared encoding is recorded as `UTF-8`, because documents are always
+    /// written as UTF-8.
+    pub fn parse_bytes(bytes: &[u8]) -> Result<Self, ParseError> {
+        Self::parse_bytes_with_options(bytes, ParseOptions::default())
+    }
+
+    /// [`Self::parse_bytes`] with explicit limits; `max_bytes` applies to the
+    /// raw input before it is decoded.
+    pub fn parse_bytes_with_options(
+        bytes: &[u8],
+        options: ParseOptions,
+    ) -> Result<Self, ParseError> {
+        crate::parser::parse_document_bytes(bytes, options)
+    }
+
     /// Builds a document around an authored root element.
     ///
     /// Declares the LOIN namespace as the default and binds the `dt` prefix for
@@ -693,6 +715,7 @@ fn write_element(
 ) -> Result<(), WriteError> {
     let mut start = BytesStart::new(element.qname());
     for attribute in element.attributes() {
+        check_xml_chars(element.qname(), "attribute value", attribute.value())?;
         start.push_attribute(QuickXmlAttribute {
             key: QName(attribute.qname().as_bytes()),
             value: Cow::Owned(escape_attribute_value(attribute.value())),
@@ -704,7 +727,7 @@ fn write_element(
     }
     writer.write_event(Event::Start(start))?;
     for node in element.nodes() {
-        write_node(writer, node)?;
+        write_node_in(writer, node, element.qname())?;
     }
     writer.write_event(Event::End(BytesEnd::new(element.qname())))?;
     Ok(())
@@ -741,29 +764,100 @@ fn escape_text_value(value: &str) -> String {
 }
 
 fn write_node(writer: &mut Writer<Cursor<Vec<u8>>>, node: &XmlNode) -> Result<(), WriteError> {
+    write_node_in(writer, node, "(document)")
+}
+
+/// Whether `character` is in the XML 1.0 `Char` production.
+const fn is_xml_char(character: char) -> bool {
+    matches!(
+        character,
+        '\t' | '\n' | '\r' | '\u{20}'..='\u{D7FF}' | '\u{E000}'..='\u{FFFD}' | '\u{10000}'..='\u{10FFFF}'
+    )
+}
+
+fn check_xml_chars(element: &str, what: &str, value: &str) -> Result<(), WriteError> {
+    match value.chars().find(|character| !is_xml_char(*character)) {
+        None => Ok(()),
+        Some(character) => Err(WriteError::InvalidContent {
+            element: element.to_owned(),
+            reason: format!(
+                "{what} contains U+{:04X}, which XML 1.0 forbids",
+                character as u32
+            ),
+        }),
+    }
+}
+
+fn check_construct(
+    element: &str,
+    what: &str,
+    value: &str,
+    forbidden: &str,
+) -> Result<(), WriteError> {
+    check_xml_chars(element, what, value)?;
+    if value.contains(forbidden) {
+        return Err(WriteError::InvalidContent {
+            element: element.to_owned(),
+            reason: format!("{what} contains `{forbidden}`, which would end it early"),
+        });
+    }
+    Ok(())
+}
+
+fn write_node_in(
+    writer: &mut Writer<Cursor<Vec<u8>>>,
+    node: &XmlNode,
+    parent: &str,
+) -> Result<(), WriteError> {
     match node {
         XmlNode::Element(element) => write_element(writer, element),
-        XmlNode::Text(value) => writer
-            .write_event(Event::Text(BytesText::from_escaped(escape_text_value(
-                value,
-            ))))
-            .map_err(Into::into),
-        XmlNode::CData(value) => writer
-            .write_event(Event::CData(BytesCData::new(value)))
-            .map_err(Into::into),
-        XmlNode::Comment(value) => writer
-            .write_event(Event::Comment(BytesText::from_escaped(value)))
-            .map_err(Into::into),
-        XmlNode::ProcessingInstruction(value) => writer
-            .write_event(Event::PI(BytesPI::new(value)))
-            .map_err(Into::into),
+        XmlNode::Text(value) => check_xml_chars(parent, "text", value).and_then(|()| {
+            writer
+                .write_event(Event::Text(BytesText::from_escaped(escape_text_value(
+                    value,
+                ))))
+                .map_err(Into::into)
+        }),
+        XmlNode::CData(value) => {
+            check_construct(parent, "CDATA section", value, "]]>")?;
+            writer
+                .write_event(Event::CData(BytesCData::new(value)))
+                .map_err(Into::into)
+        }
+        XmlNode::Comment(value) => {
+            check_construct(parent, "comment", value, "--")?;
+            if value.ends_with('-') {
+                return Err(WriteError::InvalidContent {
+                    element: parent.to_owned(),
+                    reason: "comment ends with `-`, which would end it early".to_owned(),
+                });
+            }
+            writer
+                .write_event(Event::Comment(BytesText::from_escaped(value)))
+                .map_err(Into::into)
+        }
+        XmlNode::ProcessingInstruction(value) => {
+            check_construct(parent, "processing instruction", value, "?>")?;
+            writer
+                .write_event(Event::PI(BytesPI::new(value)))
+                .map_err(Into::into)
+        }
     }
 }
 
 /// XML serialization failure.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum WriteError {
     Migration(MigrationError),
+    /// Content XML 1.0 cannot represent (for example U+0000 in a string), so
+    /// serializing it would produce a document no parser accepts.
+    InvalidContent {
+        /// Qualified name of the element holding the content.
+        element: String,
+        /// What is wrong with it.
+        reason: String,
+    },
     Xml(std::io::Error),
     Utf8(std::string::FromUtf8Error),
 }
@@ -772,6 +866,9 @@ impl fmt::Display for WriteError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Migration(error) => error.fmt(formatter),
+            Self::InvalidContent { element, reason } => {
+                write!(formatter, "cannot write XML under `{element}`: {reason}")
+            }
             Self::Xml(error) => write!(formatter, "could not write XML: {error}"),
             Self::Utf8(error) => write!(formatter, "XML writer produced invalid UTF-8: {error}"),
         }
@@ -782,6 +879,7 @@ impl Error for WriteError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::Migration(error) => Some(error),
+            Self::InvalidContent { .. } => None,
             Self::Xml(error) => Some(error),
             Self::Utf8(error) => Some(error),
         }
