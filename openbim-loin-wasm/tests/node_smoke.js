@@ -115,7 +115,8 @@ const dup = doc(
 const lints = m.lint(dup);
 assert(lints.some((d) => d.code === "DuplicateGuid" && d.severity === "Warning"),
   "DuplicateGuid lint present");
-assert.strictEqual(m.validate(dup).filter((d) => d.severity === "Error").length, 0,
-  "lint findings are not validation errors");
+assert(lints.every((d) => d.severity === "Warning"), "lint is warnings only");
+assert(!m.validate(dup).some((d) => d.code === "DuplicateGuid"),
+  "validate() does not report lint codes");
 assert.throws(() => m.lint("this is not xml"), /.*/);
 console.log("lint OK:", lints.length, "findings");
