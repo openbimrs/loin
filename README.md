@@ -117,6 +117,15 @@ assert_eq!(created.namespace(), AttributeNamespace::Unqualified);
 assert!(created.is_required());
 ```
 
+## Input handling
+
+`LoinDocument::parse` takes `&str`; `LoinDocument::parse_bytes` takes raw bytes
+and handles UTF-8 and UTF-16, refusing declarations that contradict the bytes
+instead of guessing. Input is bounded by `ParseOptions` (bytes, depth, nodes,
+attributes); nesting beyond `max_depth` is refused before any recursive pass
+runs. Writing refuses content XML 1.0 cannot represent
+(`WriteError::InvalidContent`), so a successful write always reparses.
+
 ## Reading documents
 
 `LevelOfInformationNeed::from_document` reads a parsed document into the typed
