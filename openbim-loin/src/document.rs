@@ -619,6 +619,17 @@ impl LoinDocument {
         validation::validate_document(self)
     }
 
+    /// Opt-in semantic checks that the schema does not require.
+    ///
+    /// Returns [`validation::Severity::Warning`] diagnostics for duplicate and
+    /// nil `dt:GUID`s, blank `Specification` names and whitespace-padded
+    /// date-times. This is not schema validation: [`Self::validate`] stays
+    /// derived from the XSD, and a document with lint findings can be valid.
+    #[must_use]
+    pub fn lint(&self) -> Vec<validation::Diagnostic> {
+        validation::lint_document(self)
+    }
+
     /// Serializes without dropping retained syntax. The namespace policy is mandatory.
     pub fn to_xml_string(&self, target: OutputNamespace) -> Result<String, WriteError> {
         match target {

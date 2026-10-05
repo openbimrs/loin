@@ -45,6 +45,14 @@ pub enum DiagnosticCode {
     NilledContent,
     UnsupportedXsiType,
     CompatibilityProfile,
+    /// Lint only: the same `dt:GUID` identifies more than one element.
+    DuplicateGuid,
+    /// Lint only: a `dt:GUID` is the nil GUID.
+    NilGuid,
+    /// Lint only: a `Specification` has an empty or blank `name`.
+    EmptyName,
+    /// Lint only: a date-time value carries surrounding whitespace.
+    PaddedDateTime,
 }
 
 /// One location-aware clause-level validation finding.
@@ -311,6 +319,100 @@ pub(crate) fn validate_document(document: &LoinDocument) -> Vec<Diagnostic> {
         &mut diagnostics,
     );
     diagnostics
+}
+
+/// Opt-in semantic checks the schema does not require. Warnings only.
+pub(crate) fn lint_document(document: &LoinDocument) -> Vec<Diagnostic> {
+    let mut diagnostics = Vec::new();
+    let mut guids = std::collections::HashMap::<String, String>::new();
+    lint_element(
+        document.root(),
+        "/LevelOfInformationNeed",
+        &mut guids,
+        &mut diagnostics,
+    );
+    diagnostics
+}
+
+fn lint_element(
+    element: &XmlElement,
+    path: &str,
+    guids: &mut std::collections::HashMap<String, String>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    for attribute in element.attributes() {
+        let local = attribute.local_name();
+        if attribute.namespace_uri() == Some(dt::NAMESPACE) && local == "GUID" {
+            let key = attribute.value().trim().to_ascii_lowercase();
+            if key == "00000000-0000-0000-0000-000000000000" {
+                push(
+                    diagnostics,
+                    Severity::Warning,
+                    DiagnosticCode::NilGuid,
+                    path,
+                    "dt:GUID is the nil GUID",
+                );
+            }
+            // Only LOIN's own identity-bearing elements: references and reused
+            // ISO 23387 definitions legitimately repeat a GUID.
+            let defines_identity = matches!(
+                element.local_name(),
+                "Specification"
+                    | "Prerequisites"
+                    | "Purpose"
+                    | "InformationDeliveryMilestone"
+                    | "ProvidingActor"
+                    | "ReceivingActor"
+                    | "SpecificationPerObjectType"
+            );
+            match guids.get(&key).filter(|_| defines_identity) {
+                Some(first) => push(
+                    diagnostics,
+                    Severity::Warning,
+                    DiagnosticCode::DuplicateGuid,
+                    path,
+                    format!("dt:GUID {key} already identifies {first}"),
+                ),
+                None if defines_identity => {
+                    guids.insert(key, path.to_owned());
+                }
+                None => {}
+            }
+        }
+        if attribute.namespace_uri().is_none()
+            && matches!(
+                (element.local_name(), local),
+                ("InformationDeliveryMilestone", "Date")
+                    | ("SpecificationPerObjectType", "dateOfCreation")
+            )
+            && attribute.value().trim() != attribute.value()
+        {
+            push(
+                diagnostics,
+                Severity::Warning,
+                DiagnosticCode::PaddedDateTime,
+                path,
+                format!("{local} has surrounding whitespace (valid XSD, but rarely intended)"),
+            );
+        }
+        if attribute.namespace_uri().is_none()
+            && element.local_name() == "Specification"
+            && local == "name"
+            && attribute.value().trim().is_empty()
+        {
+            push(
+                diagnostics,
+                Severity::Warning,
+                DiagnosticCode::EmptyName,
+                path,
+                "Specification name is empty",
+            );
+        }
+    }
+    for (index, child) in element.children().enumerate() {
+        let child_path = format!("{path}/{}[{}]", child.local_name(), index + 1);
+        lint_element(child, &child_path, guids, diagnostics);
+    }
 }
 
 fn visit(

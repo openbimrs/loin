@@ -19,6 +19,8 @@ the typed model still covers LOIN-owned content only (see `PLAN-model-io.md`).
 - `openbim-loin-wasm/` — wasm-bindgen browser/Node bindings; the only crate
   that may depend on wasm/JS crates. `npm/package.json` is the `@openbim/loin`
   manifest
+- `openbim-loin-cli/` — `openbim-loin` binary (validate, lint, read, migrate,
+  rewrite, grammar); no logic of its own beyond argument handling and output
 - `docs/` — repository architecture and maintained documentation
 - `scripts/gate.sh` — complete local/CI verification gate; every evidence
   script must print its completion marker (`scripts/check-evidence.py`)

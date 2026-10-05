@@ -1,0 +1,19 @@
+[package]
+name = "openbim-loin-cli"
+version = "0.3.3"
+edition = "2021"
+rust-version = "1.88"
+license = "MIT"
+authors = ["point-grey"]
+repository = "https://github.com/openbimrs/loin"
+readme = "README.md"
+description = "Command-line validator, linter, reader and migrator for ISO 7817-3 / EN 17412-3 LOIN documents."
+keywords = ["bim", "openbim", "loin", "cli"]
+categories = ["command-line-utilities"]
+
+[[bin]]
+name = "openbim-loin"
+path = "src/main.rs"
+
+[dependencies]
+openbim-loin = { path = "../openbim-loin", version = "=0.3.2" }
