@@ -44,7 +44,10 @@ expose() {
   as_root mkdir -p /usr/local/bin
   as_root ln -sfn "$1" "/usr/local/bin/$2"
 }
-export PATH="/usr/local/bin:${CARGO_HOME:-$HOME/.cargo}/bin:$HOME/.local/bin:$PATH"
+# Setup's own tool directories win; the caller's PATH comes before /usr/local/bin
+# so a tool already on PATH (or a test double) is not shadowed by a stale copy
+# there. Tools exposed into /usr/local/bin are still found.
+export PATH="${CARGO_HOME:-$HOME/.cargo}/bin:$HOME/.local/bin:$PATH:/usr/local/bin"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 
