@@ -4,7 +4,7 @@
 [![openbim-loin](https://img.shields.io/crates/v/openbim-loin.svg)](https://crates.io/crates/openbim-loin)
 [![loin](https://img.shields.io/crates/v/loin.svg)](https://crates.io/crates/loin)
 [![docs.rs](https://docs.rs/openbim-loin/badge.svg)](https://docs.rs/openbim-loin)
-[![MSRV](https://img.shields.io/badge/MSRV-1.88-blue)](https://www.rust-lang.org)
+[![MSRV](https://img.shields.io/badge/MSRV-1.99-blue)](https://www.rust-lang.org)
 
 Pure-Rust infrastructure for ISO 7817-3 / EN 17412-3 Level of Information Need
 (LOIN): machine-readable requirements for geometric information, alphanumeric
@@ -221,7 +221,7 @@ with this repository.
 
 ## Development
 
-Requires Rust `1.88` or newer and Python `3.10` or newer.
+Requires Rust `1.99` or newer and Python `3.10` or newer.
 
 ```bash
 git clone https://github.com/openbimrs/loin.git

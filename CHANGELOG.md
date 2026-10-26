@@ -96,6 +96,7 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Raise MSRV to Rust 1.99.
 - Depends on `openbim-dt` 0.3.
 - The gate requires every evidence script's completion marker, so a
   skipped or no-op check fails instead of passing silently.

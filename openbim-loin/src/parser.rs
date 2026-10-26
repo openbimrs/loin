@@ -167,17 +167,18 @@ fn decode_bytes(bytes: &[u8]) -> Result<(String, DetectedEncoding), ParseError> 
         ParseError::new(ParseErrorKind::InvalidEncoding, position as u64, message)
     };
     let utf16 = |body: &[u8], little: bool| -> Result<String, ParseError> {
-        if body.len() % 2 != 0 {
+        if !body.len().is_multiple_of(2) {
             return Err(invalid(
                 body.len(),
                 "UTF-16 input has an odd number of bytes",
             ));
         }
-        let units = body.chunks_exact(2).map(|pair| {
+        let (pairs, _) = body.as_chunks::<2>();
+        let units = pairs.iter().map(|&pair| {
             if little {
-                u16::from_le_bytes([pair[0], pair[1]])
+                u16::from_le_bytes(pair)
             } else {
-                u16::from_be_bytes([pair[0], pair[1]])
+                u16::from_be_bytes(pair)
             }
         });
         let mut text = String::with_capacity(body.len() / 2);
