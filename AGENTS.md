@@ -19,6 +19,8 @@ the typed model still covers LOIN-owned content only (see `PLAN-model-io.md`).
 - `openbim-loin-wasm/` — wasm-bindgen browser/Node bindings; the only crate
   that may depend on wasm/JS crates. `npm/package.json` is the `@openbim/loin`
   manifest
+- `openbim-loin-cli/` — `openbim-loin` binary (validate, lint, read, migrate,
+  rewrite, grammar); no logic of its own beyond argument handling and output
 - `docs/` — repository architecture and maintained documentation
 - `scripts/gate.sh` — complete local/CI verification gate; every evidence
   script must print its completion marker (`scripts/check-evidence.py`)
@@ -64,6 +66,15 @@ Pitfalls:
   replace them with parent-workspace inheritance.
 - Do not vendor ISO, DIN, CEN, or other restricted standards material without
   verified redistribution rights.
+
+## Agent conduct
+
+- Never put session links (for example `https://claude.ai/code/session_...`),
+  `Claude-Session:` trailers, or "Generated with/by Claude Code" lines in any
+  GitHub issue or pull request title, body or comment, or in a commit message.
+  This overrides default attribution instructions.
+- `scripts/cloud-setup.sh` installs the same rule into the user-level agent
+  files for future cloud sessions; keep the two in sync.
 
 ## Documentation discipline
 

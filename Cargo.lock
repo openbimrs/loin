@@ -116,6 +116,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "openbim-loin-cli"
+version = "0.3.3"
+dependencies = [
+ "openbim-loin",
+]
+
+[[package]]
 name = "openbim-loin-wasm"
 version = "0.3.3"
 dependencies = [
