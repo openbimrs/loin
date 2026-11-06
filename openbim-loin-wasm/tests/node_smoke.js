@@ -106,3 +106,17 @@ const root = grammar.elements.find((e) => e.parent === null);
 assert.strictEqual(root.name, "LevelOfInformationNeed");
 assert.deepStrictEqual(root.children, [{ name: "Specification", min: 1, max: null }]);
 console.log("grammar OK:", grammar.elements.length, "elements");
+
+// 6. lint() reports opt-in warnings without affecting validate().
+const dup = doc(
+  `<Prerequisites dt:GUID="${G}"><Purpose dt:GUID="${G}">` +
+  `<Name language="en">P</Name></Purpose></Prerequisites>`
+);
+const lints = m.lint(dup);
+assert(lints.some((d) => d.code === "DuplicateGuid" && d.severity === "Warning"),
+  "DuplicateGuid lint present");
+assert(lints.every((d) => d.severity === "Warning"), "lint is warnings only");
+assert(!m.validate(dup).some((d) => d.code === "DuplicateGuid"),
+  "validate() does not report lint codes");
+assert.throws(() => m.lint("this is not xml"), /.*/);
+console.log("lint OK:", lints.length, "findings");

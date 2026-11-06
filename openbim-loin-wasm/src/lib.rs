@@ -50,6 +50,10 @@ const fn code_str(code: DiagnosticCode) -> &'static str {
         DiagnosticCode::NilledContent => "NilledContent",
         DiagnosticCode::UnsupportedXsiType => "UnsupportedXsiType",
         DiagnosticCode::CompatibilityProfile => "CompatibilityProfile",
+        DiagnosticCode::DuplicateGuid => "DuplicateGuid",
+        DiagnosticCode::NilGuid => "NilGuid",
+        DiagnosticCode::EmptyName => "EmptyName",
+        DiagnosticCode::PaddedDateTime => "PaddedDateTime",
     }
 }
 
@@ -222,6 +226,14 @@ export interface LoinParseError extends Error {
  */
 export function validate(xml: string): Diagnostic[];
 
+/**
+ * Opt-in semantic lint (duplicate or nil GUIDs, blank specification names,
+ * padded date-times). Always `Warning` severity; not schema validation.
+ *
+ * @throws {LoinParseError} when the input is not a well-formed LOIN document.
+ */
+export function lint(xml: string): Diagnostic[];
+
 /** A LOIN namespace version. */
 export type NamespaceVersion = "Draft2022" | "Draft2024";
 
@@ -271,6 +283,18 @@ export function migrate(xml: string, target: NamespaceVersion): Migration;
 pub fn validate(xml: &str) -> Result<JsValue, JsValue> {
     let doc = LoinDocument::parse(xml).map_err(|e| parse_error(&e))?;
     let out: Vec<JsDiagnostic> = doc.validate().iter().map(to_js).collect();
+    serde_wasm_bindgen::to_value(&out).map_err(JsValue::from)
+}
+
+/// Opt-in semantic lint: duplicate or nil GUIDs, blank specification names and
+/// padded date-times, as `Warning` diagnostics. Not schema validation.
+///
+/// Throws a JS `LoinParseError` when the input is not a well-formed LOIN
+/// document.
+#[wasm_bindgen(skip_typescript)]
+pub fn lint(xml: &str) -> Result<JsValue, JsValue> {
+    let doc = LoinDocument::parse(xml).map_err(|e| parse_error(&e))?;
+    let out: Vec<JsDiagnostic> = doc.lint().iter().map(to_js).collect();
     serde_wasm_bindgen::to_value(&out).map_err(JsValue::from)
 }
 
